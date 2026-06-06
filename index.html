@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>公务员考试备考智能复盘与番茄钟工具</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-1: #e0f0ff;
+      --bg-2: #d4e4ff;
+      --bg-3: #e8e0f0;
+      --text: #1e293b;
+      --muted: #64748b;
+      --line: rgba(148, 163, 184, 0.28);
+      --glass: rgba(255, 255, 255, 0.52);
+      --glass-strong: rgba(255, 255, 255, 0.72);
+      --primary: #4f8fd8;
+      --primary-dark: #326ca9;
+      --danger: #d35f70;
+      --success: #4f9d89;
+      --warning: #c88a3d;
+      --shadow: 0 18px 45px rgba(86, 111, 145, 0.18);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(135deg, #e0f0ff, #d4e4ff, #e8e0f0);
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    textarea { resize: vertical; min-height: 86px; }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 22px;
+      min-height: 100vh;
+      padding: 22px;
+    }
+
+    .sidebar, .card, .modal-panel {
+      background: var(--glass);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 22px;
+      height: calc(100vh - 44px);
+      border-radius: 28px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .brand {
+      padding: 8px 6px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.45;
+      letter-spacing: 0.02em;
+    }
+
+    .brand p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 13px;
+      border-radius: 16px;
+      background: transparent;
+      color: #405066;
+      text-align: left;
+      transition: 0.18s ease;
+    }
+
+    .nav-btn:hover, .nav-btn.active {
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .nav-icon { width: 22px; text-align: center; }
+
+    .main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 6px 4px;
+    }
+
+    .topbar h2 { margin: 0; font-size: 28px; }
+    .topbar p { margin: 4px 0 0; color: var(--muted); }
+
+    .grid { display: grid; gap: 16px; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      border-radius: var(--radius);
+      padding: 18px;
+      min-width: 0;
+    }
+
+    .card h3 {
+      margin: 0 0 14px;
+      font-size: 17px;
+    }
+
+    .metric {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .metric-value {
+      font-size: 30px;
+      font-weight: 750;
+      color: #245d91;
+    }
+
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; }
+    .hidden { display: none !important; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      color: #42526a;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid rgba(148, 163, 184, 0.34);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.66);
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: rgba(79, 143, 216, 0.68);
+      box-shadow: 0 0 0 4px rgba(79, 143, 216, 0.12);
+    }
+
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+    .btn {
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.72);
+      color: #35506d;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      transition: 0.18s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(86, 111, 145, 0.14); }
+    .btn.primary { background: linear-gradient(135deg, #6aa9e8, #4f8fd8); color: white; border: 0; }
+    .btn.danger { background: rgba(211, 95, 112, 0.13); color: #a44151; }
+    .btn.success { background: rgba(79, 157, 137, 0.14); color: #327766; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .list { display: flex; flex-direction: column; gap: 10px; }
+
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.45);
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .item-main { min-width: 0; flex: 1; }
+    .item-title { font-weight: 720; margin-bottom: 6px; }
+    .item-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+
+    .tag-row { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+
+    .tag, .subject-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: rgba(255, 255, 255, 0.62);
+      color: #405066;
+      font-size: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+
+    .duration-value { font-size: 24px; letter-spacing: -0.03em; }
+
+    .timer-layout {
+      display: grid;
+      grid-template-columns: minmax(420px, 1.08fr) minmax(360px, 0.92fr);
+      gap: 18px;
+      align-items: stretch;
+      width: 100%;
+    }
+
+    .timer-card {
+      text-align: center;
+      min-height: 560px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timer-settings-card {
+      width: 100%;
+      min-height: 560px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .timer-settings-card .form-row { grid-template-columns: 1fr; }
+
+    .timer-action-row {
+      justify-content: center;
+      margin-top: 16px;
+    }
+
+    .timer-circle {
+      --progress: 0deg;
+      width: min(34vw, 390px);
+      min-width: 320px;
+      aspect-ratio: 1;
+      margin: 14px auto 18px;
+      border-radius: 50%;
+      background: conic-gradient(var(--primary) var(--progress), rgba(255, 255, 255, 0.54) 0deg);
+      display: grid;
+      place-items: center;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7), 0 20px 40px rgba(79, 143, 216, 0.14);
+    }
+
+    .timer-inner {
+      width: 78%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.76);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 18px;
+    }
+
+    .timer-time {
+      font-size: clamp(38px, 7vw, 58px);
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .timer-mode { color: var(--muted); font-weight: 650; }
+    .timer-subtext { min-height: 18px; }
+
+    .chart-box { height: 280px; }
+    .chart-box canvas { width: 100% !important; height: 100% !important; }
+
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .tab-chip { padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.56); color: #456078; }
+    .tab-chip.active { background: rgba(79, 143, 216, 0.16); color: var(--primary-dark); }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(37, 50, 70, 0.22);
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-panel {
+      width: min(760px, 100%);
+      max-height: 92vh;
+      overflow: auto;
+      border-radius: 24px;
+      padding: 20px;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .modal-head h3 { margin: 0; }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .check-row input { width: auto; }
+
+    .completed { opacity: 0.68; }
+    .completed .item-title { text-decoration: line-through; }
+
+    .notice {
+      border-left: 4px solid rgba(79, 143, 216, 0.72);
+      background: rgba(255, 255, 255, 0.44);
+      border-radius: 14px;
+      padding: 12px;
+      color: #41546c;
+      white-space: pre-wrap;
+    }
+
+    .ai-result { white-space: pre-wrap; line-height: 1.7; }
+
+    @media (max-width: 980px) {
+      .app-shell { grid-template-columns: 1fr; padding: 14px; }
+      .sidebar { position: static; height: auto; }
+      .nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .grid-4, .grid-3, .grid-2, .timer-layout { grid-template-columns: 1fr; }
+      .timer-card, .timer-settings-card { min-height: auto; }
+      .timer-circle { width: min(76vw, 360px); min-width: 0; }
+    }
+
+    @media (max-width: 620px) {
+      .topbar { flex-direction: column; align-items: flex-start; }
+      .nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .form-row { grid-template-columns: 1fr; }
+      .item { flex-direction: column; }
+      .item-actions { justify-content: flex-start; }
+      .timer-time { font-size: 38px; }
+      .duration-value { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>公务员考试备考智能复盘与番茄钟工具</h1>
+        <p>冷静复盘 · 专注推进 · 数据留痕</p>
+      </div>
+      <nav class="nav" id="sidebarNav">
+        <button class="nav-btn active" data-section="dashboard"><span class="nav-icon">⌂</span><span>仪表盘</span></button>
+        <button class="nav-btn" data-section="pomodoro"><span class="nav-icon">◷</span><span>番茄钟</span></button>
+        <button class="nav-btn" data-section="plans"><span class="nav-icon">□</span><span>计划</span></button>
+        <button class="nav-btn" data-section="mistakes"><span class="nav-icon">◇</span><span>错题</span></button>
+        <button class="nav-btn" data-section="reviews"><span class="nav-icon">✎</span><span>复盘</span></button>
+        <button class="nav-btn" data-section="settings"><span class="nav-icon">⚙</span><span>设置</span></button>
+      </nav>
+      <div class="notice small">所有数据仅保存在当前浏览器 localStorage 的一个应用状态键中。</div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h2 id="pageTitle">仪表盘</h2>
+          <p id="pageSubtitle">今日进度、学习趋势与智能提醒</p>
+        </div>
+        <div class="tag-row">
+          <span class="tag" id="todayLabel"></span>
+          <span class="tag" id="storageLabel">本地保存</span>
+        </div>
+      </header>
+
+      <section class="section active" id="section-dashboard">
+        <div class="grid grid-4">
+          <div class="card metric"><span class="muted">今日学习</span><span class="metric-value duration-value" id="dashTodayMinutes">0时0分0秒</span><span class="small muted">时 · 分 · 秒</span></div>
+          <div class="card metric"><span class="muted">今日番茄</span><span class="metric-value" id="dashTodayPomodoros">0</span><span class="small muted">个专注周期</span></div>
+          <div class="card metric"><span class="muted">今日计划完成</span><span class="metric-value" id="dashPlanRate">0%</span><span class="small muted" id="dashPlanCount">0 / 0</span></div>
+          <div class="card metric"><span class="muted">累计错题</span><span class="metric-value" id="dashMistakeCount">0</span><span class="small muted">条记录</span></div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top:16px;">
+          <div class="card">
+            <div class="btn-row" style="justify-content:space-between; margin-bottom:10px;">
+              <h3 style="margin:0;">学习趋势</h3>
+              <div class="tabs" style="margin:0;">
+                <button class="tab-chip active" data-range="7">近 7 天</button>
+                <button class="tab-chip" data-range="30">近 30 天</button>
+              </div>
+            </div>
+            <div class="chart-box"><canvas id="dailyChart"></canvas></div>
+          </div>
+          <div class="card">
+            <h3>科目学习占比</h3>
+            <div class="chart-box"><canvas id="subjectChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top:16px;">
+          <div class="card">
+            <h3>错题分布</h3>
+            <div class="chart-box"><canvas id="mistakeChart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="btn-row" style="justify-content:space-between; margin-bottom:12px;">
+              <h3 style="margin:0;">智能提醒</h3>
+              <button class="btn primary" id="dashboardAiBtn">AI 生成提醒</button>
+            </div>
+            <div class="notice" id="smartReminder"></div>
+            <div class="ai-result" id="dashboardAiResult" style="margin-top:12px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-pomodoro">
+        <div class="timer-layout">
+          <div class="card timer-card">
+            <div class="btn-row" style="justify-content:center; margin-bottom:10px; gap:8px;">
+              <button class="btn" id="timerModeSwitchBtn">倒计时模式</button>
+            </div>
+            <div class="timer-circle" id="timerCircle">
+              <div class="timer-inner">
+                <div class="timer-mode" id="timerMode">专注</div>
+                <div class="timer-time" id="timerTime">25:00</div>
+                <div class="small muted" id="timerSubjectLabel">请选择科目</div>
+                <div class="small muted timer-subtext" id="timerSubtext">已专注 00:00</div>
+              </div>
+            </div>
+            <div class="btn-row timer-action-row">
+              <button class="btn primary" id="timerStartPauseBtn">开始</button>
+              <button class="btn" id="timerResetBtn">重置</button>
+              <button class="btn success" id="finishCountupBtn" disabled>结束并记录</button>
+            </div>
+          </div>
+          <div class="card timer-settings-card">
+            <h3>番茄钟设置</h3>
+            <div class="form-row">
+              <div class="field"><label for="timerSubject">专注科目</label><select id="timerSubject"></select></div>
+              <div class="field"><label for="focusMinutes">专注时长（分钟）</label><input type="number" id="focusMinutes" min="1" max="180" /></div>
+              <div class="field"><label for="breakMinutes">休息时长（分钟）</label><input type="number" id="breakMinutes" min="1" max="60" /></div>
+            </div>
+            <div class="btn-row" style="margin-top:12px; gap:8px;">
+              <button class="btn success" id="saveTimerSettingsBtn">保存时长</button>
+            </div>
+            <div class="notice small" style="margin-top:12px;">专注结束会自动播放提示音，并把本轮专注时长记入所选科目；休息时间不计入学习。倒计时提前完成或正向计时手动结束时，都可以点击“结束并记录”。</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-plans">
+        <div class="card">
+          <div class="btn-row" style="justify-content:space-between;">
+            <h3 style="margin:0;">学习计划</h3>
+            <button class="btn primary" id="addPlanBtn">新增计划</button>
+          </div>
+        </div>
+        <div class="grid grid-2" style="margin-top:16px;">
+          <div class="card"><h3>今日未完成</h3><div class="list" id="todayPendingPlans"></div></div>
+          <div class="card"><h3>今日已完成</h3><div class="list" id="todayDonePlans"></div></div>
+        </div>
+        <div class="card" style="margin-top:16px;"><h3>其他计划</h3><div class="list" id="otherPlans"></div></div>
+      </section>
+
+      <section class="section" id="section-mistakes">
+        <div class="card">
+          <div class="btn-row" style="justify-content:space-between;">
+            <h3 style="margin:0;">错题记录</h3>
+            <div class="btn-row">
+              <select id="mistakeFilterSubject" style="min-width:160px;"></select>
+              <button class="btn primary" id="addMistakeBtn">新增错题</button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px;"><div class="list" id="mistakeList"></div></div>
+      </section>
+
+      <section class="section" id="section-reviews">
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>每日 / 每周复盘</h3>
+            <div class="form-row">
+              <div class="field"><label for="reviewDate">复盘日期</label><input type="date" id="reviewDate" /></div>
+              <div class="field"><label for="reviewType">复盘类型</label><select id="reviewType"><option value="daily">每日复盘</option><option value="weekly">每周复盘</option></select></div>
+            </div>
+            <div class="notice small" id="reviewSummary"></div>
+            <div class="field" style="margin-top:12px;"><label for="reviewDone">今日完成情况</label><textarea id="reviewDone"></textarea></div>
+            <div class="field"><label for="reviewProblems">困难与不足</label><textarea id="reviewProblems"></textarea></div>
+            <div class="field"><label for="reviewActions">改进措施</label><textarea id="reviewActions"></textarea></div>
+            <div class="field"><label for="reviewTomorrow">明日重点</label><textarea id="reviewTomorrow"></textarea></div>
+            <div class="btn-row" style="margin-top:12px;">
+              <button class="btn success" id="saveReviewBtn">保存复盘</button>
+              <button class="btn primary" id="aiReviewBtn">一键 AI 复盘</button>
+            </div>
+            <div class="ai-result" id="aiReviewResult" style="margin-top:12px;"></div>
+          </div>
+          <div class="card">
+            <h3>历史复盘</h3>
+            <div class="list" id="reviewHistory"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-settings">
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>科目管理</h3>
+            <div class="form-row">
+              <div class="field"><label for="subjectName">科目名称</label><input id="subjectName" placeholder="例如：申论写作" /></div>
+              <div class="field"><label for="subjectColor">颜色标签</label><input type="color" id="subjectColor" value="#6aa9e8" /></div>
+            </div>
+            <input type="hidden" id="subjectEditingId" />
+            <div class="btn-row">
+              <button class="btn primary" id="saveSubjectBtn">保存科目</button>
+              <button class="btn" id="cancelSubjectEditBtn">取消编辑</button>
+            </div>
+            <div class="list" id="subjectList" style="margin-top:14px;"></div>
+          </div>
+          <div class="card">
+            <h3>AI 接口设置</h3>
+            <div class="field"><label for="apiKey">API Key（按要求保存到本地）</label><input id="apiKey" type="password" placeholder="sk-..." /></div>
+            <div class="field"><label for="baseUrl">Base URL</label><input id="baseUrl" placeholder="https://api.openai.com/v1" /></div>
+            <div class="field"><label for="modelName">模型</label><input id="modelName" placeholder="gpt-4o-mini / deepseek-chat" /></div>
+            <div class="btn-row" style="margin-top:12px;">
+              <button class="btn success" id="saveAiSettingsBtn">保存 AI 设置</button>
+              <button class="btn danger" id="resetAllBtn">重置全部数据</button>
+            </div>
+            <div class="notice small" style="margin-top:12px;">兼容 OpenAI / DeepSeek 的 /chat/completions 接口。若配置缺失，AI 功能会给出明确错误。</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="editModal" role="dialog" aria-modal="true">
+    <div class="modal-panel">
+      <div class="modal-head">
+        <h3 id="modalTitle">编辑</h3>
+        <button class="btn" id="modalCloseBtn">关闭</button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    const APP_KEY = 'civilServiceExamReviewPomodoroStateV1';
+    const DAY = 24 * 60 * 60 * 1000;
+    const $ = (id) => document.getElementById(id);
+
+    // Central runtime state: all persisted data is nested under one localStorage key.
+    const app = {
+      state: null,
+      activeSection: 'dashboard',
+      chartRange: 7,
+      charts: {},
+      reviewFormDirty: false,
+      settingsFormDirty: false,
+      timer: {
+        mode: 'countdown',
+        phase: 'focus',
+        running: false,
+        intervalId: null,
+        startedAt: null,
+        elapsedSeconds: 0,
+        remaining: 25 * 60,
+        total: 25 * 60,
+        selectedSubjectId: ''
+      }
+    };
+
+    function uid(prefix) {
+      return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    }
+
+    function todayISO() {
+      return toISODate(new Date());
+    }
+
+    function toISODate(date) {
+      const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function dateOffsetISO(offset) {
+      return toISODate(new Date(Date.now() + offset * DAY));
+    }
+
+    function escapeHtml(text) {
+      return String(text ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+    }
+
+    function clampNumber(value, min, max, fallback) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return fallback;
+      return Math.min(max, Math.max(min, Math.round(n)));
+    }
+
+    function defaultSubjects() {
+      return [
+        { id: 'sub_yanyu', name: '言语理解与表达', color: '#6aa9e8' },
+        { id: 'sub_shuliang', name: '数量关系', color: '#86b7d8' },
+        { id: 'sub_panduan', name: '判断推理', color: '#7fa6e8' },
+        { id: 'sub_ziliao', name: '资料分析', color: '#75c4c6' },
+        { id: 'sub_changshi', name: '常识判断', color: '#9aa7d9' },
+        { id: 'sub_shenlun', name: '申论', color: '#8ab6a9' },
+        { id: 'sub_gongji', name: '公共基础知识', color: '#a8b8d8' },
+        { id: 'sub_mianshi', name: '面试', color: '#b7a7d8' }
+      ];
+    }
+
+    function migrateReviewArray(reviews) {
+      if (!Array.isArray(reviews)) return {};
+      return reviews.reduce((map, review) => {
+        if (!review || !review.date) return map;
+        const type = review.type || review.period || 'daily';
+        map[reviewKey(review.date, type)] = { ...review, type };
+        return map;
+      }, {});
+    }
+
+    function defaultState() {
+      const subjects = defaultSubjects();
+      return {
+        version: 1,
+        subjects,
+        sessions: [],
+        plans: [],
+        mistakes: [],
+        reviews: {},
+        settings: {
+          focusMinutes: 25,
+          breakMinutes: 5,
+          apiKey: '',
+          baseUrl: '',
+          model: ''
+        }
+      };
+    }
+
+    // Persistence: one serialized application state object under APP_KEY.
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(APP_KEY);
+        if (!raw) return defaultState();
+        const parsed = JSON.parse(raw);
+        const fallback = defaultState();
+        return {
+          ...fallback,
+          ...parsed,
+          subjects: Array.isArray(parsed.subjects) ? parsed.subjects : fallback.subjects,
+          sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
+          plans: Array.isArray(parsed.plans) ? parsed.plans : [],
+          mistakes: Array.isArray(parsed.mistakes) ? parsed.mistakes : [],
+          reviews: parsed.reviews && typeof parsed.reviews === 'object' && !Array.isArray(parsed.reviews) ? parsed.reviews : migrateReviewArray(parsed.reviews),
+          settings: { ...fallback.settings, ...(parsed.settings || {}) }
+        };
+      } catch (err) {
+        console.error(err);
+        alert('本地数据读取失败，已使用默认数据初始化。');
+        return defaultState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(APP_KEY, JSON.stringify(app.state));
+    }
+
+    function subjectById(id) {
+      return app.state.subjects.find((s) => s.id === id) || null;
+    }
+
+    function subjectName(id) {
+      const subject = subjectById(id);
+      return subject ? subject.name : '未分类';
+    }
+
+    function subjectColor(id) {
+      const subject = subjectById(id);
+      return subject ? subject.color : '#94a3b8';
+    }
+
+    function subjectPill(id) {
+      return `<span class="subject-pill"><span class="dot" style="background:${subjectColor(id)}"></span>${escapeHtml(subjectName(id))}</span>`;
+    }
+
+    function populateSubjectSelect(select, options = {}) {
+      const { includeAll = false, includeEmpty = false, emptyText = '请选择科目' } = options;
+      const current = select.value;
+      select.innerHTML = '';
+      if (includeAll) select.insertAdjacentHTML('beforeend', '<option value="all">全部科目</option>');
+      if (includeEmpty) select.insertAdjacentHTML('beforeend', `<option value="">${emptyText}</option>`);
+      app.state.subjects.forEach((subject) => {
+        const option = document.createElement('option');
+        option.value = subject.id;
+        option.textContent = subject.name;
+        select.appendChild(option);
+      });
+      if ([...select.options].some((opt) => opt.value === current)) select.value = current;
+    }
+
+    function syncSubjectDropdowns() {
+      populateSubjectSelect($('timerSubject'), { includeEmpty: true });
+      populateSubjectSelect($('mistakeFilterSubject'), { includeAll: true });
+      if (!$('mistakeFilterSubject').value) $('mistakeFilterSubject').value = 'all';
+    }
+
+    function sessionsOn(date) {
+      return app.state.sessions.filter((s) => s.date === date);
+    }
+
+    function mistakesOn(date) {
+      return app.state.mistakes.filter((m) => m.date === date);
+    }
+
+    function sessionDurationSeconds(session) {
+      if (Number.isFinite(Number(session.durationSeconds))) return Math.max(0, Math.floor(Number(session.durationSeconds)));
+      return Math.max(0, Math.round(Number(session.minutes || 0) * 60));
+    }
+
+    function totalSecondsForDate(date) {
+      return sessionsOn(date).reduce((sum, session) => sum + sessionDurationSeconds(session), 0);
+    }
+
+    function totalMinutesForDate(date) {
+      return totalSecondsForDate(date) / 60;
+    }
+
+    function formatDuration(seconds) {
+      const safeSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+      const h = Math.floor(safeSeconds / 3600);
+      const m = Math.floor((safeSeconds % 3600) / 60);
+      const s = safeSeconds % 60;
+      return `${h}时${m}分${s}秒`;
+    }
+
+    function formatMinutes(minutes) {
+      return formatDuration(Math.round(Number(minutes || 0) * 60));
+    }
+
+    function renderAll() {
+      $('todayLabel').textContent = todayISO();
+      syncSubjectDropdowns();
+      renderDashboard();
+      renderTimer();
+      renderPlans();
+      renderMistakes();
+      renderReviews();
+      renderSettings();
+    }
+
+    function switchSection(section) {
+      app.activeSection = section;
+      document.querySelectorAll('.nav-btn').forEach((btn) => btn.classList.toggle('active', btn.dataset.section === section));
+      document.querySelectorAll('.section').forEach((panel) => panel.classList.toggle('active', panel.id === `section-${section}`));
+      const titles = {
+        dashboard: ['仪表盘', '今日进度、学习趋势与智能提醒'],
+        pomodoro: ['番茄钟', '按科目记录专注时间'],
+        plans: ['计划', '管理每日与每周备考任务'],
+        mistakes: ['错题', '沉淀错因、答案与标签'],
+        reviews: ['复盘', '每日 / 每周模板化复盘'],
+        settings: ['设置', '科目、番茄钟与 AI 接口配置']
+      };
+      $('pageTitle').textContent = titles[section][0];
+      $('pageSubtitle').textContent = titles[section][1];
+      if (section === 'dashboard') setTimeout(renderCharts, 0);
+    }
+
+    function renderDashboard() {
+      const today = todayISO();
+      const todaySeconds = totalSecondsForDate(today);
+      const todayPlans = app.state.plans.filter((plan) => plan.dueDate === today);
+      const done = todayPlans.filter((plan) => plan.completed).length;
+      const rate = todayPlans.length ? Math.round(done / todayPlans.length * 100) : 0;
+      $('dashTodayMinutes').textContent = formatDuration(todaySeconds);
+      $('dashTodayPomodoros').textContent = sessionsOn(today).length;
+      $('dashPlanRate').textContent = `${rate}%`;
+      $('dashPlanCount').textContent = `${done} / ${todayPlans.length}`;
+      $('dashMistakeCount').textContent = app.state.mistakes.length;
+      $('smartReminder').textContent = buildLocalReminder();
+      renderCharts();
+    }
+
+    function buildLocalReminder() {
+      const today = todayISO();
+      const plans = app.state.plans.filter((p) => p.dueDate === today);
+      const pending = plans.filter((p) => !p.completed);
+      const minutes = totalMinutesForDate(today);
+      const mistakes = mistakesOn(today).length;
+      const lines = [];
+      if (!plans.length) lines.push('今天还没有计划。建议补充 1-3 个可完成的小任务，避免无目标学习。');
+      if (pending.length) lines.push(`今天还有 ${pending.length} 项计划未完成：${pending.slice(0, 3).map((p) => p.title).join('、')}。优先处理临近考试高频模块。`);
+      if (plans.length && !pending.length) lines.push('今日计划已全部完成。可以用 10 分钟复盘错题，巩固收益。');
+      if (minutes === 0) lines.push('今日尚未记录专注学习时间。先从一个 25 分钟番茄开始。');
+      if (minutes > 0 && minutes < 50) lines.push('今日已有学习记录，但时间偏少。建议再完成 1 个番茄钟。');
+      if (mistakes > 0) lines.push(`今天新增 ${mistakes} 条错题，复盘时重点写清错因和改进动作。`);
+      return lines.join('\n');
+    }
+
+    function getDailySeries(days) {
+      const labels = [];
+      const values = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const date = dateOffsetISO(-i);
+        labels.push(date.slice(5));
+        values.push(totalMinutesForDate(date));
+      }
+      return { labels, values };
+    }
+
+    function getSubjectStatRows() {
+      const rows = app.state.subjects.map((subject) => ({
+        subject,
+        minutes: app.state.sessions.filter((s) => s.subjectId === subject.id).reduce((sum, s) => sum + sessionDurationSeconds(s) / 60, 0),
+        mistakes: app.state.mistakes.filter((m) => m.subjectId === subject.id).length
+      }));
+      const unknownMinutes = app.state.sessions.filter((s) => !subjectById(s.subjectId)).reduce((sum, s) => sum + sessionDurationSeconds(s) / 60, 0);
+      const unknownMistakes = app.state.mistakes.filter((m) => !subjectById(m.subjectId)).length;
+      if (unknownMinutes || unknownMistakes) rows.push({ subject: { id: '', name: '未分类', color: '#94a3b8' }, minutes: unknownMinutes, mistakes: unknownMistakes });
+      return rows;
+    }
+
+    // Chart.js summaries: daily trend, subject time share, and mistake distribution.
+    function renderCharts() {
+      if (typeof Chart === 'undefined') return;
+      const textColor = '#475569';
+      const gridColor = 'rgba(148, 163, 184, 0.22)';
+      const daily = getDailySeries(app.chartRange);
+      const subjectRows = getSubjectStatRows();
+      const activeSubjectData = subjectRows.filter((entry) => entry.minutes > 0);
+      const mistakeCounts = subjectRows.map((entry) => entry.mistakes);
+
+      destroyChart('daily');
+      app.charts.daily = new Chart($('dailyChart'), {
+        type: 'line',
+        data: { labels: daily.labels, datasets: [{ label: '学习分钟', data: daily.values, borderColor: '#4f8fd8', backgroundColor: 'rgba(79, 143, 216, 0.14)', fill: true, tension: 0.35, pointRadius: 3 }] },
+        options: chartOptions(textColor, gridColor)
+      });
+
+      destroyChart('subject');
+      app.charts.subject = new Chart($('subjectChart'), {
+        type: 'pie',
+        data: {
+          labels: activeSubjectData.length ? activeSubjectData.map((e) => e.subject.name) : ['暂无学习记录'],
+          datasets: [{ data: activeSubjectData.length ? activeSubjectData.map((e) => e.minutes) : [1], backgroundColor: activeSubjectData.length ? activeSubjectData.map((e) => e.subject.color) : ['#cbd5e1'], borderColor: 'rgba(255,255,255,0.75)' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: textColor } } } }
+      });
+
+      destroyChart('mistake');
+      app.charts.mistake = new Chart($('mistakeChart'), {
+        type: 'bar',
+        data: { labels: subjectRows.map((row) => row.subject.name), datasets: [{ label: '错题数', data: mistakeCounts, backgroundColor: subjectRows.map((row) => `${row.subject.color}cc`), borderRadius: 10 }] },
+        options: chartOptions(textColor, gridColor)
+      });
+    }
+
+    function chartOptions(textColor, gridColor) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: textColor } } },
+        scales: {
+          x: { ticks: { color: textColor }, grid: { color: gridColor } },
+          y: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: true }
+        }
+      };
+    }
+
+    function destroyChart(name) {
+      if (app.charts[name]) {
+        app.charts[name].destroy();
+        app.charts[name] = null;
+      }
+    }
+
+    function renderTimer() {
+      $('focusMinutes').value = app.state.settings.focusMinutes;
+      $('breakMinutes').value = app.state.settings.breakMinutes;
+      const selected = $('timerSubject').value || app.timer.selectedSubjectId;
+      app.timer.selectedSubjectId = selected;
+      $('timerSubjectLabel').textContent = selected ? subjectName(selected) : '请选择科目';
+      const isCountdown = app.timer.mode === 'countdown';
+      const isFocusPhase = app.timer.phase === 'focus';
+      $('timerMode').textContent = isCountdown ? (isFocusPhase ? '专注' : '休息') : '正向计时';
+      $('timerModeSwitchBtn').textContent = isCountdown ? '切换到正向计时' : '切换到倒计时';
+      $('timerTime').textContent = isCountdown ? formatSeconds(app.timer.remaining) : formatSeconds(app.timer.elapsedSeconds);
+      $('timerSubtext').textContent = isCountdown
+        ? (isFocusPhase ? `已专注 ${formatSeconds(app.timer.elapsedSeconds)}` : '休息时间不计入学习')
+        : '正向计时中';
+      $('timerStartPauseBtn').textContent = app.timer.running ? '暂停' : '开始';
+      const canFinish = app.timer.elapsedSeconds > 0 && (app.timer.mode === 'countup' || (app.timer.mode === 'countdown' && isFocusPhase));
+      $('finishCountupBtn').disabled = !canFinish;
+      $('finishCountupBtn').textContent = canFinish && !app.timer.running ? '记录本次学习' : '结束并记录';
+      const progress = isCountdown
+        ? (app.timer.total ? (1 - app.timer.remaining / app.timer.total) * 360 : 0)
+        : (app.timer.total ? (app.timer.elapsedSeconds / app.timer.total) * 360 : 0);
+      $('timerCircle').style.setProperty('--progress', `${Math.max(0, Math.min(360, progress))}deg`);
+    }
+
+    function recordStudySession(durationSeconds, mode) {
+      const seconds = Math.max(1, Math.floor(Number(durationSeconds) || 0));
+      app.state.sessions.push({
+        id: uid('sess'),
+        subjectId: app.timer.selectedSubjectId,
+        durationSeconds: seconds,
+        minutes: seconds / 60,
+        date: todayISO(),
+        createdAt: new Date().toISOString(),
+        mode
+      });
+      saveState();
+    }
+
+    function finishStudySession() {
+      const isRecordableCountdown = app.timer.mode === 'countdown' && app.timer.phase === 'focus' && app.timer.elapsedSeconds > 0;
+      const isRecordableCountup = app.timer.mode === 'countup' && app.timer.elapsedSeconds > 0;
+      if (!isRecordableCountdown && !isRecordableCountup) return;
+      if (!app.timer.selectedSubjectId) {
+        alert('请先选择本轮学习科目。');
+        return;
+      }
+      const mode = app.timer.mode;
+      const durationSeconds = app.timer.elapsedSeconds;
+      pauseTimer();
+      recordStudySession(durationSeconds, mode);
+      alert('本次学习已结束，学习时长已记录。');
+      app.timer.mode = mode;
+      app.timer.phase = 'focus';
+      app.timer.elapsedSeconds = 0;
+      app.timer.total = app.state.settings.focusMinutes * 60;
+      app.timer.remaining = app.timer.total;
+      renderAll();
+    }
+
+    function formatSeconds(seconds) {
+      const safeSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+      const minutes = Math.floor(safeSeconds / 60);
+      const restSeconds = safeSeconds % 60;
+      return `${String(minutes).padStart(2, '0')}:${String(restSeconds).padStart(2, '0')}`;
+    }
+
+    function formatTimerTime(elapsedSeconds, remainingSeconds) {
+      return `${formatSeconds(elapsedSeconds)} / ${formatSeconds(remainingSeconds)}`;
+    }
+
+    function startPauseTimer() {
+      if (app.timer.running) {
+        pauseTimer();
+        return;
+      }
+      app.timer.selectedSubjectId = $('timerSubject').value;
+      if (!app.timer.selectedSubjectId) {
+        alert('请先选择本轮学习科目。');
+        return;
+      }
+      if (app.timer.total <= 0) {
+        app.timer.total = app.state.settings.focusMinutes * 60;
+      }
+      app.timer.running = true;
+      app.timer.startedAt = app.timer.startedAt || new Date().toISOString();
+      app.timer.intervalId = setInterval(tickTimer, 1000);
+      renderTimer();
+    }
+
+    function pauseTimer() {
+      app.timer.running = false;
+      clearInterval(app.timer.intervalId);
+      app.timer.intervalId = null;
+      renderTimer();
+    }
+
+    function resetTimer(force = false) {
+      if (app.timer.running && !force && !confirm('番茄钟正在运行，确定要重置吗？')) return;
+      pauseTimer();
+      app.timer.elapsedSeconds = 0;
+      if (app.timer.mode === 'countdown') {
+        app.timer.phase = 'focus';
+        app.timer.total = app.state.settings.focusMinutes * 60;
+      } else {
+        app.timer.total = app.state.settings.focusMinutes * 60;
+      }
+      app.timer.remaining = app.timer.total;
+      renderTimer();
+    }
+
+    function switchTimerMode() {
+      if (app.timer.running && !confirm('当前计时正在运行，切换模式会重置本轮计时。确定继续吗？')) return;
+      pauseTimer();
+      app.timer.phase = app.timer.mode === 'countdown' ? 'focus' : app.timer.phase;
+      app.timer.mode = app.timer.mode === 'countdown' ? 'countup' : 'countdown';
+      app.timer.elapsedSeconds = 0;
+      app.timer.total = app.timer.mode === 'countdown' ? app.state.settings.focusMinutes * 60 : 25 * 60;
+      app.timer.remaining = app.timer.total;
+      renderTimer();
+    }
+
+    function tickTimer() {
+      app.timer.elapsedSeconds += 1;
+      if (app.timer.mode === 'countdown') {
+        app.timer.remaining -= 1;
+        if (app.timer.remaining <= 0) completeTimerRound();
+      }
+      renderTimer();
+    }
+
+    function completeTimerRound() {
+      playCompletionSound();
+      pauseTimer();
+      if (app.timer.mode === 'countdown' && app.timer.phase === 'focus') {
+        recordStudySession(app.timer.total, 'countdown');
+        app.timer.phase = 'break';
+        app.timer.elapsedSeconds = 0;
+        app.timer.total = app.state.settings.breakMinutes * 60;
+        app.timer.remaining = app.timer.total;
+        renderAll();
+        alert('专注结束，已记录学习时长。可以开始休息计时。');
+        return;
+      }
+      if (app.timer.mode === 'countdown' && app.timer.phase === 'break') {
+        app.timer.phase = 'focus';
+        app.timer.elapsedSeconds = 0;
+        app.timer.total = app.state.settings.focusMinutes * 60;
+        app.timer.remaining = app.timer.total;
+        renderTimer();
+        alert('休息结束，可以开始下一轮专注。');
+      }
+    }
+
+    function playCompletionSound() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(660, ctx.currentTime);
+        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.001, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.48);
+      } catch (err) {
+        console.warn('Audio unavailable', err);
+      }
+    }
+
+    function saveTimerSettings() {
+      app.state.settings.focusMinutes = clampNumber($('focusMinutes').value, 1, 180, 25);
+      app.state.settings.breakMinutes = clampNumber($('breakMinutes').value, 1, 60, 5);
+      saveState();
+      if (!app.timer.running) resetTimer(true);
+      alert('番茄钟时长已保存。');
+    }
+
+    function renderPlans() {
+      const today = todayISO();
+      const pending = app.state.plans.filter((p) => p.dueDate === today && !p.completed);
+      const done = app.state.plans.filter((p) => p.dueDate === today && p.completed);
+      const other = app.state.plans.filter((p) => p.dueDate !== today).sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+      renderPlanList($('todayPendingPlans'), pending);
+      renderPlanList($('todayDonePlans'), done);
+      renderPlanList($('otherPlans'), other);
+    }
+
+    function renderPlanList(container, plans) {
+      if (!plans.length) {
+        container.innerHTML = '<div class="muted small">暂无计划</div>';
+        return;
+      }
+      container.innerHTML = plans.map((plan) => `
+        <div class="item ${plan.completed ? 'completed' : ''}">
+          <div class="item-main">
+            <div class="item-title">${escapeHtml(plan.title)}</div>
+            <div class="tag-row">${subjectPill(plan.subjectId)}<span class="tag">${plan.cadence === 'weekly' ? '每周' : '每日'}</span><span class="tag">预计 ${plan.estimatedPomodoros} 个番茄</span><span class="tag">截止 ${escapeHtml(plan.dueDate)}</span></div>
+          </div>
+          <div class="item-actions">
+            <label class="check-row small"><input type="checkbox" data-plan-toggle="${plan.id}" ${plan.completed ? 'checked' : ''}/>完成</label>
+            <button class="btn" data-plan-edit="${plan.id}">编辑</button>
+            <button class="btn danger" data-plan-delete="${plan.id}">删除</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openPlanModal(planId = '') {
+      const plan = app.state.plans.find((p) => p.id === planId) || { title: '', subjectId: '', estimatedPomodoros: 1, dueDate: todayISO(), completed: false, cadence: 'daily' };
+      openModal(planId ? '编辑计划' : '新增计划', `
+        <div class="field"><label for="planTitleInput">标题</label><input id="planTitleInput" value="${escapeHtml(plan.title)}" /></div>
+        <div class="form-row">
+          <div class="field"><label for="planSubjectInput">科目</label><select id="planSubjectInput"></select></div>
+          <div class="field"><label for="planPomodoroInput">预计番茄数</label><input type="number" id="planPomodoroInput" min="1" max="30" value="${plan.estimatedPomodoros}" /></div>
+          <div class="field"><label for="planDueInput">截止日期</label><input type="date" id="planDueInput" value="${escapeHtml(plan.dueDate)}" /></div>
+          <div class="field"><label for="planCadenceInput">类型</label><select id="planCadenceInput"><option value="daily">每日</option><option value="weekly">每周</option></select></div>
+        </div>
+        <label class="check-row"><input type="checkbox" id="planCompletedInput" ${plan.completed ? 'checked' : ''}/>已完成</label>
+        <div class="btn-row" style="margin-top:14px;"><button class="btn primary" id="savePlanModalBtn">保存</button></div>
+      `);
+      populateSubjectSelect($('planSubjectInput'), { includeEmpty: true });
+      $('planSubjectInput').value = plan.subjectId;
+      $('planCadenceInput').value = plan.cadence;
+      $('savePlanModalBtn').onclick = () => {
+        const title = $('planTitleInput').value.trim();
+        if (!title) { alert('请输入计划标题。'); return; }
+        const payload = {
+          title,
+          subjectId: $('planSubjectInput').value,
+          estimatedPomodoros: clampNumber($('planPomodoroInput').value, 1, 30, 1),
+          dueDate: $('planDueInput').value || todayISO(),
+          completed: $('planCompletedInput').checked,
+          cadence: $('planCadenceInput').value
+        };
+        if (planId) Object.assign(plan, payload);
+        else app.state.plans.push({ id: uid('plan'), ...payload });
+        saveState();
+        closeModal();
+        renderAll();
+      };
+    }
+
+    function renderMistakes() {
+      const filter = $('mistakeFilterSubject').value || 'all';
+      const mistakes = app.state.mistakes.filter((m) => filter === 'all' || m.subjectId === filter).sort((a, b) => b.date.localeCompare(a.date));
+      const container = $('mistakeList');
+      if (!mistakes.length) {
+        container.innerHTML = '<div class="muted small">暂无错题记录</div>';
+        return;
+      }
+      container.innerHTML = mistakes.map((m) => `
+        <div class="item">
+          <div class="item-main">
+            <div class="item-title">${escapeHtml(m.summary)}</div>
+            <div class="tag-row">${subjectPill(m.subjectId)}<span class="tag">${escapeHtml(m.date)}</span>${(m.tags || []).map((tag) => `<span class="tag">#${escapeHtml(tag)}</span>`).join('')}</div>
+            <div class="small muted" style="margin-top:8px;">错因：${escapeHtml(m.reason || '未填写')}</div>
+            <div class="small muted">正解：${escapeHtml(m.answer || '未填写')}</div>
+          </div>
+          <div class="item-actions"><button class="btn" data-mistake-edit="${m.id}">编辑</button><button class="btn danger" data-mistake-delete="${m.id}">删除</button></div>
+        </div>
+      `).join('');
+    }
+
+    function openMistakeModal(mistakeId = '') {
+      const mistake = app.state.mistakes.find((m) => m.id === mistakeId) || { subjectId: '', summary: '', reason: '', answer: '', tags: [], date: todayISO() };
+      openModal(mistakeId ? '编辑错题' : '新增错题', `
+        <div class="form-row">
+          <div class="field"><label for="mistakeSubjectInput">科目</label><select id="mistakeSubjectInput"></select></div>
+          <div class="field"><label for="mistakeDateInput">日期</label><input type="date" id="mistakeDateInput" value="${escapeHtml(mistake.date)}" /></div>
+        </div>
+        <div class="field"><label for="mistakeSummaryInput">题目/错误摘要</label><textarea id="mistakeSummaryInput">${escapeHtml(mistake.summary)}</textarea></div>
+        <div class="field"><label for="mistakeReasonInput">错因</label><textarea id="mistakeReasonInput">${escapeHtml(mistake.reason)}</textarea></div>
+        <div class="field"><label for="mistakeAnswerInput">正确答案 / 解法</label><textarea id="mistakeAnswerInput">${escapeHtml(mistake.answer)}</textarea></div>
+        <div class="field"><label for="mistakeTagsInput">标签（逗号分隔）</label><input id="mistakeTagsInput" value="${escapeHtml((mistake.tags || []).join(', '))}" /></div>
+        <div class="btn-row" style="margin-top:14px;"><button class="btn primary" id="saveMistakeModalBtn">保存</button></div>
+      `);
+      populateSubjectSelect($('mistakeSubjectInput'), { includeEmpty: true });
+      $('mistakeSubjectInput').value = mistake.subjectId;
+      $('saveMistakeModalBtn').onclick = () => {
+        const summary = $('mistakeSummaryInput').value.trim();
+        if (!summary) { alert('请输入错题摘要。'); return; }
+        const payload = {
+          subjectId: $('mistakeSubjectInput').value,
+          summary,
+          reason: $('mistakeReasonInput').value.trim(),
+          answer: $('mistakeAnswerInput').value.trim(),
+          tags: $('mistakeTagsInput').value.split(/[,，]/).map((tag) => tag.trim()).filter(Boolean),
+          date: $('mistakeDateInput').value || todayISO()
+        };
+        if (mistakeId) Object.assign(mistake, payload);
+        else app.state.mistakes.push({ id: uid('mis'), ...payload });
+        saveState();
+        closeModal();
+        renderAll();
+      };
+    }
+
+    function renderReviews() {
+      if (!$('reviewDate').value) $('reviewDate').value = todayISO();
+      if (app.reviewFormDirty) renderReviewSummaryForCurrentDate();
+      else loadReviewIntoForm();
+      renderReviewHistory();
+    }
+
+    function reviewKey(date, type) {
+      return `${date}_${type}`;
+    }
+
+    function currentReviewKey() {
+      return reviewKey($('reviewDate').value || todayISO(), $('reviewType').value);
+    }
+
+    function renderReviewSummaryForCurrentDate() {
+      const date = $('reviewDate').value || todayISO();
+      const bySubject = sessionsOn(date).reduce((map, session) => {
+        const name = subjectName(session.subjectId);
+        map[name] = (map[name] || 0) + sessionDurationSeconds(session);
+        return map;
+      }, {});
+      const subjectText = Object.keys(bySubject).length ? Object.entries(bySubject).map(([name, seconds]) => `${name} ${formatDuration(seconds)}`).join('；') : '暂无学习记录';
+      $('reviewSummary').textContent = `${date} 学习总时长：${formatMinutes(totalMinutesForDate(date))}\n错题数量：${mistakesOn(date).length} 条\n科目分布：${subjectText}`;
+    }
+
+    function loadReviewIntoForm() {
+      const key = currentReviewKey();
+      const review = app.state.reviews[key] || { done: '', problems: '', actions: '', tomorrow: '' };
+      $('reviewDone').value = review.done;
+      $('reviewProblems').value = review.problems;
+      $('reviewActions').value = review.actions;
+      $('reviewTomorrow').value = review.tomorrow;
+      app.reviewFormDirty = false;
+      renderReviewSummaryForCurrentDate();
+    }
+
+    function saveReview() {
+      const key = currentReviewKey();
+      const previous = app.state.reviews[key] || {};
+      app.state.reviews[key] = {
+        ...previous,
+        date: $('reviewDate').value || todayISO(),
+        type: $('reviewType').value,
+        done: $('reviewDone').value.trim(),
+        problems: $('reviewProblems').value.trim(),
+        actions: $('reviewActions').value.trim(),
+        tomorrow: $('reviewTomorrow').value.trim(),
+        updatedAt: new Date().toISOString()
+      };
+      app.reviewFormDirty = false;
+      saveState();
+      renderReviewHistory();
+      alert('复盘已保存。');
+    }
+
+    function renderReviewHistory() {
+      const entries = Object.values(app.state.reviews).sort((a, b) => `${b.date}_${b.type}`.localeCompare(`${a.date}_${a.type}`));
+      const container = $('reviewHistory');
+      if (!entries.length) {
+        container.innerHTML = '<div class="muted small">暂无历史复盘</div>';
+        return;
+      }
+      container.innerHTML = entries.map((r) => `
+        <div class="item">
+          <div class="item-main"><div class="item-title">${escapeHtml(r.date)} · ${r.type === 'weekly' ? '每周复盘' : '每日复盘'}</div><div class="small muted">${escapeHtml((r.done || '未填写完成情况').slice(0, 70))}</div></div>
+          <div class="item-actions"><button class="btn" data-review-load="${escapeHtml(r.date)}" data-review-type="${escapeHtml(r.type)}">查看</button></div>
+        </div>
+      `).join('');
+    }
+
+    function renderSettings() {
+      if (!app.settingsFormDirty) {
+        $('apiKey').value = app.state.settings.apiKey || '';
+        $('baseUrl').value = app.state.settings.baseUrl || '';
+        $('modelName').value = app.state.settings.model || '';
+      }
+      renderSubjectList();
+    }
+
+    function renderSubjectList() {
+      const container = $('subjectList');
+      if (!app.state.subjects.length) {
+        container.innerHTML = '<div class="muted small">暂无科目。请至少添加一个科目用于番茄钟记录。</div>';
+        return;
+      }
+      container.innerHTML = app.state.subjects.map((subject) => `
+        <div class="item">
+          <div class="item-main"><div class="tag-row"><span class="subject-pill"><span class="dot" style="background:${subject.color}"></span>${escapeHtml(subject.name)}</span><span class="tag">${escapeHtml(subject.color)}</span></div></div>
+          <div class="item-actions"><button class="btn" data-subject-edit="${subject.id}">编辑</button><button class="btn danger" data-subject-delete="${subject.id}">删除</button></div>
+        </div>
+      `).join('');
+    }
+
+    function saveSubject() {
+      const id = $('subjectEditingId').value;
+      const name = $('subjectName').value.trim();
+      const color = $('subjectColor').value || '#6aa9e8';
+      if (!name) { alert('请输入科目名称。'); return; }
+      if (id) {
+        const subject = subjectById(id);
+        if (subject) Object.assign(subject, { name, color });
+      } else {
+        app.state.subjects.push({ id: uid('sub'), name, color });
+      }
+      $('subjectEditingId').value = '';
+      $('subjectName').value = '';
+      $('subjectColor').value = '#6aa9e8';
+      saveState();
+      renderAll();
+    }
+
+    function editSubject(id) {
+      const subject = subjectById(id);
+      if (!subject) return;
+      $('subjectEditingId').value = subject.id;
+      $('subjectName').value = subject.name;
+      $('subjectColor').value = subject.color;
+    }
+
+    function deleteSubject(id) {
+      const referenced = app.state.sessions.some((s) => s.subjectId === id) || app.state.plans.some((p) => p.subjectId === id) || app.state.mistakes.some((m) => m.subjectId === id);
+      const message = referenced ? '该科目已被学习记录、计划或错题引用。删除后相关记录会显示为“未分类”。确定删除吗？' : '确定删除该科目吗？';
+      if (!confirm(message)) return;
+      app.state.subjects = app.state.subjects.filter((s) => s.id !== id);
+      if ($('timerSubject').value === id) $('timerSubject').value = '';
+      saveState();
+      renderAll();
+    }
+
+    function saveAiSettings() {
+      app.state.settings.apiKey = $('apiKey').value.trim();
+      app.state.settings.baseUrl = $('baseUrl').value.trim().replace(/\/+$/, '');
+      app.state.settings.model = $('modelName').value.trim();
+      app.settingsFormDirty = false;
+      saveState();
+      alert('AI 设置已保存。');
+    }
+
+    function buildDataSummary(date) {
+      const plans = app.state.plans.filter((p) => p.dueDate === date).map((p) => ({ title: p.title, subject: subjectName(p.subjectId), estimatedPomodoros: p.estimatedPomodoros, completed: p.completed }));
+      const sessions = sessionsOn(date).map((s) => ({ subject: subjectName(s.subjectId), duration: formatDuration(sessionDurationSeconds(s)) }));
+      const mistakes = mistakesOn(date).map((m) => ({ subject: subjectName(m.subjectId), summary: m.summary, reason: m.reason, tags: m.tags }));
+      return { date, totalStudyMinutes: totalMinutesForDate(date), plans, sessions, mistakes };
+    }
+
+    async function callAi(messages) {
+      const { apiKey, baseUrl, model } = app.state.settings;
+      if (!apiKey || !baseUrl || !model) throw new Error('AI 配置缺失：请在设置中填写 API Key、Base URL 和模型名称。');
+      const response = await fetch(`${baseUrl.replace(/\/+$/, '')}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({ model, messages, temperature: 0.4 })
+      });
+      const text = await response.text();
+      if (!response.ok) throw new Error(`AI 请求失败：HTTP ${response.status} ${text.slice(0, 300)}`);
+      const data = JSON.parse(text);
+      return data.choices?.[0]?.message?.content || 'AI 未返回可读内容。';
+    }
+
+    async function generateAiReview() {
+      const target = $('aiReviewResult');
+      target.textContent = 'AI 复盘生成中...';
+      try {
+        const date = $('reviewDate').value || todayISO();
+        const summary = buildDataSummary(date);
+        const content = await callAi([
+          { role: 'system', content: '你是公务员考试备考教练。请基于数据输出简洁、可执行的中文复盘建议。' },
+          { role: 'user', content: `请根据以下备考数据生成复盘，结构包括：完成情况、问题诊断、改进措施、明日重点。数据：${JSON.stringify(summary, null, 2)}` }
+        ]);
+        target.textContent = content;
+      } catch (err) {
+        target.textContent = err.message;
+      }
+    }
+
+    async function generateDashboardReminder() {
+      const target = $('dashboardAiResult');
+      target.textContent = 'AI 提醒生成中...';
+      try {
+        const summary = buildDataSummary(todayISO());
+        const content = await callAi([
+          { role: 'system', content: '你是公务员考试备考提醒助手。输出 3-5 条冷静、具体、可执行的提醒。' },
+          { role: 'user', content: `请基于今天的计划完成情况、学习时间和错题数据给出智能提醒：${JSON.stringify(summary, null, 2)}` }
+        ]);
+        target.textContent = content;
+      } catch (err) {
+        target.textContent = err.message;
+      }
+    }
+
+    function openModal(title, bodyHtml) {
+      $('modalTitle').textContent = title;
+      $('modalBody').innerHTML = bodyHtml;
+      $('editModal').classList.add('active');
+    }
+
+    function closeModal() {
+      $('editModal').classList.remove('active');
+      $('modalBody').innerHTML = '';
+    }
+
+    function bindEvents() {
+      $('sidebarNav').addEventListener('click', (event) => {
+        const btn = event.target.closest('.nav-btn');
+        if (btn) switchSection(btn.dataset.section);
+      });
+      document.querySelectorAll('[data-range]').forEach((btn) => btn.addEventListener('click', () => {
+        app.chartRange = Number(btn.dataset.range);
+        document.querySelectorAll('[data-range]').forEach((b) => b.classList.toggle('active', b === btn));
+        renderCharts();
+      }));
+      $('timerStartPauseBtn').addEventListener('click', startPauseTimer);
+      $('timerResetBtn').addEventListener('click', () => resetTimer(false));
+      $('timerModeSwitchBtn').addEventListener('click', switchTimerMode);
+      $('finishCountupBtn').addEventListener('click', finishStudySession);
+      $('saveTimerSettingsBtn').addEventListener('click', saveTimerSettings);
+      $('timerSubject').addEventListener('change', () => { app.timer.selectedSubjectId = $('timerSubject').value; renderTimer(); });
+      $('addPlanBtn').addEventListener('click', () => openPlanModal());
+      $('addMistakeBtn').addEventListener('click', () => openMistakeModal());
+      $('mistakeFilterSubject').addEventListener('change', renderMistakes);
+      $('saveReviewBtn').addEventListener('click', saveReview);
+      $('aiReviewBtn').addEventListener('click', generateAiReview);
+      $('dashboardAiBtn').addEventListener('click', generateDashboardReminder);
+      $('reviewDate').addEventListener('change', () => { app.reviewFormDirty = true; loadReviewIntoForm(); });
+      $('reviewType').addEventListener('change', () => { app.reviewFormDirty = true; loadReviewIntoForm(); });
+      ['reviewDone', 'reviewProblems', 'reviewActions', 'reviewTomorrow'].forEach((id) => {
+        $(id).addEventListener('input', () => { app.reviewFormDirty = true; });
+      });
+      $('saveSubjectBtn').addEventListener('click', saveSubject);
+      $('cancelSubjectEditBtn').addEventListener('click', () => { $('subjectEditingId').value = ''; $('subjectName').value = ''; $('subjectColor').value = '#6aa9e8'; });
+      $('apiKey').addEventListener('input', () => { app.settingsFormDirty = true; });
+      $('baseUrl').addEventListener('input', () => { app.settingsFormDirty = true; });
+      $('modelName').addEventListener('input', () => { app.settingsFormDirty = true; });
+      $('resetAllBtn').addEventListener('click', () => {
+        if (app.timer.running && !confirm('番茄钟正在运行，重置全部数据会停止计时。确定继续吗？')) return;
+        if (!confirm('确定重置全部本地数据吗？此操作不可恢复。')) return;
+        clearInterval(app.timer.intervalId);
+        app.timer.running = false;
+        app.timer.intervalId = null;
+        localStorage.removeItem(APP_KEY);
+        app.state = defaultState();
+        app.reviewFormDirty = false;
+        app.settingsFormDirty = false;
+        app.timer.mode = 'countdown';
+        app.timer.phase = 'focus';
+        app.timer.elapsedSeconds = 0;
+        app.timer.total = app.state.settings.focusMinutes * 60;
+        app.timer.remaining = app.timer.total;
+        app.timer.selectedSubjectId = '';
+        saveState();
+        renderAll();
+        alert('全部本地数据已重置。');
+      });
+      $('modalCloseBtn').addEventListener('click', closeModal);
+      $('editModal').addEventListener('click', (event) => { if (event.target === $('editModal')) closeModal(); });
+
+      document.addEventListener('click', (event) => {
+        const planEdit = event.target.closest('[data-plan-edit]');
+        const planDelete = event.target.closest('[data-plan-delete]');
+        const mistakeEdit = event.target.closest('[data-mistake-edit]');
+        const mistakeDelete = event.target.closest('[data-mistake-delete]');
+        const subjectEdit = event.target.closest('[data-subject-edit]');
+        const subjectDelete = event.target.closest('[data-subject-delete]');
+        const reviewLoad = event.target.closest('[data-review-load]');
+        if (planEdit) openPlanModal(planEdit.dataset.planEdit);
+        if (planDelete && confirm('确定删除该计划吗？')) {
+          app.state.plans = app.state.plans.filter((p) => p.id !== planDelete.dataset.planDelete);
+          saveState(); renderAll();
+        }
+        if (mistakeEdit) openMistakeModal(mistakeEdit.dataset.mistakeEdit);
+        if (mistakeDelete && confirm('确定删除该错题记录吗？')) {
+          app.state.mistakes = app.state.mistakes.filter((m) => m.id !== mistakeDelete.dataset.mistakeDelete);
+          saveState(); renderAll();
+        }
+        if (subjectEdit) editSubject(subjectEdit.dataset.subjectEdit);
+        if (subjectDelete) deleteSubject(subjectDelete.dataset.subjectDelete);
+        if (reviewLoad) {
+          $('reviewDate').value = reviewLoad.dataset.reviewLoad;
+          $('reviewType').value = reviewLoad.dataset.reviewType;
+          loadReviewIntoForm();
+        }
+      });
+
+      document.addEventListener('change', (event) => {
+        const toggle = event.target.closest('[data-plan-toggle]');
+        if (toggle) {
+          const plan = app.state.plans.find((p) => p.id === toggle.dataset.planToggle);
+          if (plan) {
+            plan.completed = toggle.checked;
+            saveState();
+            renderAll();
+          }
+        }
+      });
+    }
+
+    function init() {
+      app.state = loadState();
+      app.timer.total = app.state.settings.focusMinutes * 60;
+      app.timer.remaining = app.timer.total;
+      app.timer.elapsedSeconds = 0;
+      $('reviewDate').value = todayISO();
+      bindEvents();
+      renderAll();
+    }
+
+    init();
+  </script>
+</body>
+</html>
