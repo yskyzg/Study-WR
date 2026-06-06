@@ -325,6 +325,39 @@
     .timer-mode { color: var(--muted); font-weight: 650; }
     .timer-subtext { min-height: 18px; }
 
+    .chart-empty { display: none; margin: 4px 0 8px; }
+    .chart-empty.active { display: block; }
+
+    .mistake-toolbar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr)) auto;
+      gap: 12px;
+      align-items: end;
+      margin-top: 14px;
+    }
+
+    .mistake-toolbar .btn { min-height: 42px; }
+
+    .type-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .type-manager-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.42);
+    }
+
+    .type-manager-row + .type-manager-row { margin-top: 8px; }
+
     .chart-box { height: 280px; }
     .chart-box canvas { width: 100% !important; height: 100% !important; }
 
@@ -389,7 +422,8 @@
       .app-shell { grid-template-columns: 1fr; padding: 14px; }
       .sidebar { position: static; height: auto; }
       .nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .grid-4, .grid-3, .grid-2, .timer-layout { grid-template-columns: 1fr; }
+      .grid-4, .grid-3, .grid-2, .timer-layout, .mistake-toolbar { grid-template-columns: 1fr; }
+      .mistake-toolbar .btn { width: 100%; }
       .timer-card, .timer-settings-card { min-height: auto; }
       .timer-circle { width: min(76vw, 360px); min-width: 0; }
     }
@@ -448,6 +482,7 @@
             <div class="btn-row" style="justify-content:space-between; margin-bottom:10px;">
               <h3 style="margin:0;">学习趋势</h3>
               <div class="tabs" style="margin:0;">
+                <select id="dailySubjectFilter" style="min-width:150px;"><option value="all">全部科目</option></select>
                 <button class="tab-chip active" data-range="7">近 7 天</button>
                 <button class="tab-chip" data-range="30">近 30 天</button>
               </div>
@@ -464,6 +499,17 @@
           <div class="card">
             <h3>错题分布</h3>
             <div class="chart-box"><canvas id="mistakeChart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="btn-row" style="justify-content:space-between; margin-bottom:12px;">
+              <h3 style="margin:0;">错题新增趋势</h3>
+              <div class="btn-row">
+                <select id="mistakeTrendSubjectFilter" style="min-width:150px;"><option value="all">全部科目</option></select>
+                <select id="mistakeTrendTypeFilter" style="min-width:150px;"><option value="all">全部题型</option></select>
+              </div>
+            </div>
+            <div class="small muted chart-empty" id="mistakeTrendEmpty">暂无符合条件的错题数据</div>
+            <div class="chart-box"><canvas id="mistakeTrendChart"></canvas></div>
           </div>
           <div class="card">
             <div class="btn-row" style="justify-content:space-between; margin-bottom:12px;">
@@ -527,12 +573,16 @@
 
       <section class="section" id="section-mistakes">
         <div class="card">
-          <div class="btn-row" style="justify-content:space-between;">
-            <h3 style="margin:0;">错题记录</h3>
-            <div class="btn-row">
-              <select id="mistakeFilterSubject" style="min-width:160px;"></select>
-              <button class="btn primary" id="addMistakeBtn">新增错题</button>
+          <div class="btn-row" style="justify-content:space-between; align-items:flex-start;">
+            <div>
+              <h3 style="margin:0;">错题记录</h3>
+              <div class="small muted" style="margin-top:6px;">按科目和题型筛选，集中复盘薄弱题型。</div>
             </div>
+          </div>
+          <div class="mistake-toolbar">
+            <div class="field"><label for="mistakeFilterSubject">科目筛选</label><select id="mistakeFilterSubject"></select></div>
+            <div class="field"><label for="mistakeFilterType">题型筛选</label><select id="mistakeFilterType"><option value="all">全部题型</option></select></div>
+            <button class="btn primary" id="addMistakeBtn">新增错题</button>
           </div>
         </div>
         <div class="card" style="margin-top:16px;"><div class="list" id="mistakeList"></div></div>
@@ -660,15 +710,20 @@
 
     function defaultSubjects() {
       return [
-        { id: 'sub_yanyu', name: '言语理解与表达', color: '#6aa9e8' },
-        { id: 'sub_shuliang', name: '数量关系', color: '#86b7d8' },
-        { id: 'sub_panduan', name: '判断推理', color: '#7fa6e8' },
-        { id: 'sub_ziliao', name: '资料分析', color: '#75c4c6' },
-        { id: 'sub_changshi', name: '常识判断', color: '#9aa7d9' },
-        { id: 'sub_shenlun', name: '申论', color: '#8ab6a9' },
-        { id: 'sub_gongji', name: '公共基础知识', color: '#a8b8d8' },
-        { id: 'sub_mianshi', name: '面试', color: '#b7a7d8' }
+        { id: 'sub_yanyu', name: '言语理解与表达', color: '#6aa9e8', types: ['逻辑填空', '片段阅读', '语句排序', '语句填空'] },
+        { id: 'sub_shuliang', name: '数量关系', color: '#86b7d8', types: ['工程问题', '行程问题', '排列组合', '资料计算'] },
+        { id: 'sub_panduan', name: '判断推理', color: '#7fa6e8', types: ['图形推理', '定义判断', '类比推理', '逻辑判断'] },
+        { id: 'sub_ziliao', name: '资料分析', color: '#75c4c6', types: ['增长率', '比重', '平均数', '综合分析'] },
+        { id: 'sub_changshi', name: '常识判断', color: '#9aa7d9', types: ['政治', '法律', '经济', '科技人文'] },
+        { id: 'sub_shenlun', name: '申论', color: '#8ab6a9', types: ['归纳概括', '综合分析', '提出对策', '文章写作'] },
+        { id: 'sub_gongji', name: '公共基础知识', color: '#a8b8d8', types: ['单选题', '多选题', '判断题', '材料题'] },
+        { id: 'sub_mianshi', name: '面试', color: '#b7a7d8', types: ['综合分析', '组织管理', '应急应变', '人际关系'] }
       ];
+    }
+
+    function normalizeSubject(subject) {
+      const uniqueTypes = Array.from(new Set((Array.isArray(subject.types) ? subject.types : []).map((type) => String(type).trim()).filter(Boolean)));
+      return { ...subject, types: uniqueTypes };
     }
 
     function migrateReviewArray(reviews) {
@@ -710,7 +765,7 @@
         return {
           ...fallback,
           ...parsed,
-          subjects: Array.isArray(parsed.subjects) ? parsed.subjects : fallback.subjects,
+          subjects: Array.isArray(parsed.subjects) ? parsed.subjects.map(normalizeSubject) : fallback.subjects,
           sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
           plans: Array.isArray(parsed.plans) ? parsed.plans : [],
           mistakes: Array.isArray(parsed.mistakes) ? parsed.mistakes : [],
@@ -761,10 +816,40 @@
       if ([...select.options].some((opt) => opt.value === current)) select.value = current;
     }
 
+    function getSubjectTypes(subjectId) {
+      const subject = subjectById(subjectId);
+      return subject ? subject.types || [] : [];
+    }
+
+    function populateQuestionTypeSelect(select, subjectId, options = {}) {
+      const { includeAll = false, includeEmpty = false, includeAdd = false, emptyText = '请选择题型' } = options;
+      const current = select.value;
+      select.innerHTML = '';
+      if (includeAll) select.insertAdjacentHTML('beforeend', '<option value="all">全部题型</option>');
+      if (includeEmpty) select.insertAdjacentHTML('beforeend', `<option value="">${emptyText}</option>`);
+      if (subjectId && subjectId !== 'all') {
+        getSubjectTypes(subjectId).forEach((type) => {
+          const option = document.createElement('option');
+          option.value = type;
+          option.textContent = type;
+          select.appendChild(option);
+        });
+      }
+      if (includeAdd) select.insertAdjacentHTML('beforeend', '<option value="__add_type__">+ 添加新题型</option>');
+      if ([...select.options].some((opt) => opt.value === current)) select.value = current;
+      else if (includeAll) select.value = 'all';
+    }
+
     function syncSubjectDropdowns() {
       populateSubjectSelect($('timerSubject'), { includeEmpty: true });
       populateSubjectSelect($('mistakeFilterSubject'), { includeAll: true });
+      populateSubjectSelect($('dailySubjectFilter'), { includeAll: true });
+      populateSubjectSelect($('mistakeTrendSubjectFilter'), { includeAll: true });
       if (!$('mistakeFilterSubject').value) $('mistakeFilterSubject').value = 'all';
+      if (!$('dailySubjectFilter').value) $('dailySubjectFilter').value = 'all';
+      if (!$('mistakeTrendSubjectFilter').value) $('mistakeTrendSubjectFilter').value = 'all';
+      populateQuestionTypeSelect($('mistakeFilterType'), $('mistakeFilterSubject').value, { includeAll: true });
+      populateQuestionTypeSelect($('mistakeTrendTypeFilter'), $('mistakeTrendSubjectFilter').value, { includeAll: true });
     }
 
     function sessionsOn(date) {
@@ -859,15 +944,44 @@
       return lines.join('\n');
     }
 
-    function getDailySeries(days) {
+    function getDailySeries(days, subjectId = 'all') {
       const labels = [];
       const values = [];
       for (let i = days - 1; i >= 0; i--) {
         const date = dateOffsetISO(-i);
+        const sessions = sessionsOn(date).filter((session) => subjectId === 'all' || session.subjectId === subjectId);
         labels.push(date.slice(5));
-        values.push(totalMinutesForDate(date));
+        values.push(sessions.reduce((sum, session) => sum + sessionDurationSeconds(session), 0) / 60);
       }
       return { labels, values };
+    }
+
+    function getMistakeTrendSeries(days, subjectId = 'all', questionType = 'all') {
+      const labels = [];
+      const values = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const date = dateOffsetISO(-i);
+        const count = mistakesOn(date)
+          .filter((mistake) => subjectId === 'all' || mistake.subjectId === subjectId)
+          .filter((mistake) => questionType === 'all' || mistake.questionType === questionType)
+          .length;
+        labels.push(date.slice(5));
+        values.push(count);
+      }
+      return { labels, values };
+    }
+
+    function sessionTimeLabel(session) {
+      const date = new Date(session.createdAt || session.date || Date.now());
+      if (Number.isNaN(date.getTime())) return '--:--';
+      return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    }
+
+    function dailySessionDetails(date, subjectId = 'all') {
+      return sessionsOn(date)
+        .filter((session) => subjectId === 'all' || session.subjectId === subjectId)
+        .sort((a, b) => String(a.createdAt || '').localeCompare(String(b.createdAt || '')))
+        .map((session) => `${sessionTimeLabel(session)} ${subjectName(session.subjectId)} - ${formatDuration(sessionDurationSeconds(session))}`);
     }
 
     function getSubjectStatRows() {
@@ -887,7 +1001,11 @@
       if (typeof Chart === 'undefined') return;
       const textColor = '#475569';
       const gridColor = 'rgba(148, 163, 184, 0.22)';
-      const daily = getDailySeries(app.chartRange);
+      const dailySubject = $('dailySubjectFilter').value || 'all';
+      const trendSubject = $('mistakeTrendSubjectFilter').value || 'all';
+      const trendType = $('mistakeTrendTypeFilter').value || 'all';
+      const daily = getDailySeries(app.chartRange, dailySubject);
+      const mistakeTrend = getMistakeTrendSeries(app.chartRange, trendSubject, trendType);
       const subjectRows = getSubjectStatRows();
       const activeSubjectData = subjectRows.filter((entry) => entry.minutes > 0);
       const mistakeCounts = subjectRows.map((entry) => entry.mistakes);
@@ -896,7 +1014,18 @@
       app.charts.daily = new Chart($('dailyChart'), {
         type: 'line',
         data: { labels: daily.labels, datasets: [{ label: '学习分钟', data: daily.values, borderColor: '#4f8fd8', backgroundColor: 'rgba(79, 143, 216, 0.14)', fill: true, tension: 0.35, pointRadius: 3 }] },
-        options: chartOptions(textColor, gridColor)
+        options: chartOptions(textColor, gridColor, {
+          tooltip: {
+            callbacks: {
+              afterBody: (items) => {
+                const index = items[0]?.dataIndex ?? 0;
+                const date = dateOffsetISO(-(app.chartRange - 1 - index));
+                const details = dailySessionDetails(date, dailySubject);
+                return details.length ? details : ['暂无计时明细'];
+              }
+            }
+          }
+        })
       });
 
       destroyChart('subject');
@@ -915,13 +1044,21 @@
         data: { labels: subjectRows.map((row) => row.subject.name), datasets: [{ label: '错题数', data: mistakeCounts, backgroundColor: subjectRows.map((row) => `${row.subject.color}cc`), borderRadius: 10 }] },
         options: chartOptions(textColor, gridColor)
       });
+
+      $('mistakeTrendEmpty').classList.toggle('active', !mistakeTrend.values.some((value) => value > 0));
+      destroyChart('mistakeTrend');
+      app.charts.mistakeTrend = new Chart($('mistakeTrendChart'), {
+        type: 'line',
+        data: { labels: mistakeTrend.labels, datasets: [{ label: '新增错题', data: mistakeTrend.values, borderColor: '#50a7c8', backgroundColor: 'rgba(80, 167, 200, 0.14)', fill: true, tension: 0.35, pointRadius: 3 }] },
+        options: chartOptions(textColor, gridColor)
+      });
     }
 
-    function chartOptions(textColor, gridColor) {
+    function chartOptions(textColor, gridColor, pluginOverrides = {}) {
       return {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: textColor } } },
+        plugins: { legend: { labels: { color: textColor } }, ...pluginOverrides },
         scales: {
           x: { ticks: { color: textColor }, grid: { color: gridColor } },
           y: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: true }
@@ -1185,7 +1322,11 @@
 
     function renderMistakes() {
       const filter = $('mistakeFilterSubject').value || 'all';
-      const mistakes = app.state.mistakes.filter((m) => filter === 'all' || m.subjectId === filter).sort((a, b) => b.date.localeCompare(a.date));
+      const typeFilter = $('mistakeFilterType').value || 'all';
+      const mistakes = app.state.mistakes
+        .filter((m) => filter === 'all' || m.subjectId === filter)
+        .filter((m) => typeFilter === 'all' || m.questionType === typeFilter)
+        .sort((a, b) => b.date.localeCompare(a.date));
       const container = $('mistakeList');
       if (!mistakes.length) {
         container.innerHTML = '<div class="muted small">暂无错题记录</div>';
@@ -1195,7 +1336,7 @@
         <div class="item">
           <div class="item-main">
             <div class="item-title">${escapeHtml(m.summary)}</div>
-            <div class="tag-row">${subjectPill(m.subjectId)}<span class="tag">${escapeHtml(m.date)}</span>${(m.tags || []).map((tag) => `<span class="tag">#${escapeHtml(tag)}</span>`).join('')}</div>
+            <div class="tag-row">${subjectPill(m.subjectId)}${m.questionType ? `<span class="tag">${escapeHtml(m.questionType)}</span>` : ''}<span class="tag">${escapeHtml(m.date)}</span>${(m.tags || []).map((tag) => `<span class="tag">#${escapeHtml(tag)}</span>`).join('')}</div>
             <div class="small muted" style="margin-top:8px;">错因：${escapeHtml(m.reason || '未填写')}</div>
             <div class="small muted">正解：${escapeHtml(m.answer || '未填写')}</div>
           </div>
@@ -1205,10 +1346,11 @@
     }
 
     function openMistakeModal(mistakeId = '') {
-      const mistake = app.state.mistakes.find((m) => m.id === mistakeId) || { subjectId: '', summary: '', reason: '', answer: '', tags: [], date: todayISO() };
+      const mistake = app.state.mistakes.find((m) => m.id === mistakeId) || { subjectId: '', questionType: '', summary: '', reason: '', answer: '', tags: [], date: todayISO() };
       openModal(mistakeId ? '编辑错题' : '新增错题', `
         <div class="form-row">
           <div class="field"><label for="mistakeSubjectInput">科目</label><select id="mistakeSubjectInput"></select></div>
+          <div class="field"><label for="mistakeTypeInput">题型</label><select id="mistakeTypeInput"></select></div>
           <div class="field"><label for="mistakeDateInput">日期</label><input type="date" id="mistakeDateInput" value="${escapeHtml(mistake.date)}" /></div>
         </div>
         <div class="field"><label for="mistakeSummaryInput">题目/错误摘要</label><textarea id="mistakeSummaryInput">${escapeHtml(mistake.summary)}</textarea></div>
@@ -1219,11 +1361,30 @@
       `);
       populateSubjectSelect($('mistakeSubjectInput'), { includeEmpty: true });
       $('mistakeSubjectInput').value = mistake.subjectId;
+      populateQuestionTypeSelect($('mistakeTypeInput'), $('mistakeSubjectInput').value, { includeEmpty: true, includeAdd: true });
+      if ([...$('mistakeTypeInput').options].some((opt) => opt.value === (mistake.questionType || ''))) $('mistakeTypeInput').value = mistake.questionType || '';
+      $('mistakeSubjectInput').addEventListener('change', () => {
+        populateQuestionTypeSelect($('mistakeTypeInput'), $('mistakeSubjectInput').value, { includeEmpty: true, includeAdd: true });
+      });
+      $('mistakeTypeInput').addEventListener('change', () => {
+        if ($('mistakeTypeInput').value !== '__add_type__') return;
+        const subjectId = $('mistakeSubjectInput').value;
+        if (!subjectId) {
+          alert('请先选择科目。');
+          populateQuestionTypeSelect($('mistakeTypeInput'), subjectId, { includeEmpty: true, includeAdd: true });
+          return;
+        }
+        const name = prompt('请输入新题型名称：');
+        const added = addQuestionType(subjectId, name);
+        populateQuestionTypeSelect($('mistakeTypeInput'), subjectId, { includeEmpty: true, includeAdd: true });
+        if (added) $('mistakeTypeInput').value = added;
+      });
       $('saveMistakeModalBtn').onclick = () => {
         const summary = $('mistakeSummaryInput').value.trim();
         if (!summary) { alert('请输入错题摘要。'); return; }
         const payload = {
           subjectId: $('mistakeSubjectInput').value,
+          questionType: $('mistakeTypeInput').value === '__add_type__' ? '' : $('mistakeTypeInput').value,
           summary,
           reason: $('mistakeReasonInput').value.trim(),
           answer: $('mistakeAnswerInput').value.trim(),
@@ -1326,8 +1487,11 @@
       }
       container.innerHTML = app.state.subjects.map((subject) => `
         <div class="item">
-          <div class="item-main"><div class="tag-row"><span class="subject-pill"><span class="dot" style="background:${subject.color}"></span>${escapeHtml(subject.name)}</span><span class="tag">${escapeHtml(subject.color)}</span></div></div>
-          <div class="item-actions"><button class="btn" data-subject-edit="${subject.id}">编辑</button><button class="btn danger" data-subject-delete="${subject.id}">删除</button></div>
+          <div class="item-main">
+            <div class="tag-row"><span class="subject-pill"><span class="dot" style="background:${subject.color}"></span>${escapeHtml(subject.name)}</span><span class="tag">${escapeHtml(subject.color)}</span></div>
+            <div class="type-list">${(subject.types || []).length ? subject.types.map((type) => `<span class="tag">${escapeHtml(type)}</span>`).join('') : '<span class="muted small">暂无题型</span>'}</div>
+          </div>
+          <div class="item-actions"><button class="btn" data-subject-types="${subject.id}">管理题型</button><button class="btn" data-subject-edit="${subject.id}">编辑</button><button class="btn danger" data-subject-delete="${subject.id}">删除</button></div>
         </div>
       `).join('');
     }
@@ -1341,7 +1505,7 @@
         const subject = subjectById(id);
         if (subject) Object.assign(subject, { name, color });
       } else {
-        app.state.subjects.push({ id: uid('sub'), name, color });
+        app.state.subjects.push({ id: uid('sub'), name, color, types: [] });
       }
       $('subjectEditingId').value = '';
       $('subjectName').value = '';
@@ -1368,6 +1532,86 @@
       renderAll();
     }
 
+    function typeExists(subject, typeName, exceptOldName = '') {
+      const normalized = String(typeName || '').trim();
+      return (subject?.types || []).some((type) => type === normalized && type !== exceptOldName);
+    }
+
+    function addQuestionType(subjectId, typeName) {
+      const subject = subjectById(subjectId);
+      const normalized = String(typeName || '').trim();
+      if (!subject || !normalized) return '';
+      subject.types = subject.types || [];
+      if (typeExists(subject, normalized)) {
+        alert('该科目下已存在同名题型。');
+        return '';
+      }
+      subject.types.push(normalized);
+      saveState();
+      return normalized;
+    }
+
+    function renameQuestionType(subjectId, oldName, newName) {
+      const subject = subjectById(subjectId);
+      const normalized = String(newName || '').trim();
+      if (!subject || !normalized) return false;
+      subject.types = subject.types || [];
+      if (typeExists(subject, normalized, oldName)) {
+        alert('该科目下已存在同名题型。');
+        return false;
+      }
+      subject.types = subject.types.map((type) => type === oldName ? normalized : type);
+      saveState();
+      return true;
+    }
+
+    function deleteQuestionType(subjectId, typeName) {
+      const subject = subjectById(subjectId);
+      if (!subject) return;
+      if (!confirm('确定删除该题型吗？已存在的错题记录会保留这个题型名称。')) return;
+      subject.types = (subject.types || []).filter((type) => type !== typeName);
+      saveState();
+      renderAll();
+      if ($('typeManagerList')) renderTypeManagerList(subjectId);
+    }
+
+    function openQuestionTypeManager(subjectId) {
+      const subject = subjectById(subjectId);
+      if (!subject) return;
+      openModal(`管理题型 · ${subject.name}`, `
+        <div class="field"><label for="newTypeInput">新增题型</label><input id="newTypeInput" placeholder="例如：逻辑填空" /></div>
+        <div class="btn-row" style="margin:12px 0 16px;"><button class="btn primary" id="addTypeBtn">新增题型</button></div>
+        <div class="list" id="typeManagerList"></div>
+      `);
+      renderTypeManagerList(subjectId);
+      $('addTypeBtn').onclick = () => {
+        const added = addQuestionType(subjectId, $('newTypeInput').value);
+        if (!added) return;
+        $('newTypeInput').value = '';
+        renderTypeManagerList(subjectId);
+        renderSettings();
+      };
+    }
+
+    function renderTypeManagerList(subjectId) {
+      const container = $('typeManagerList');
+      const subject = subjectById(subjectId);
+      const types = subject?.types || [];
+      if (!types.length) {
+        container.innerHTML = '<div class="muted small">暂无题型。可以先新增一个。</div>';
+        return;
+      }
+      container.innerHTML = types.map((type) => `
+        <div class="type-manager-row">
+          <span>${escapeHtml(type)}</span>
+          <div class="btn-row">
+            <button class="btn" data-type-edit="${escapeHtml(subjectId)}" data-type-name="${escapeHtml(type)}">编辑</button>
+            <button class="btn danger" data-type-delete="${escapeHtml(subjectId)}" data-type-name="${escapeHtml(type)}">删除</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
     function saveAiSettings() {
       app.state.settings.apiKey = $('apiKey').value.trim();
       app.state.settings.baseUrl = $('baseUrl').value.trim().replace(/\/+$/, '');
@@ -1380,7 +1624,7 @@
     function buildDataSummary(date) {
       const plans = app.state.plans.filter((p) => p.dueDate === date).map((p) => ({ title: p.title, subject: subjectName(p.subjectId), estimatedPomodoros: p.estimatedPomodoros, completed: p.completed }));
       const sessions = sessionsOn(date).map((s) => ({ subject: subjectName(s.subjectId), duration: formatDuration(sessionDurationSeconds(s)) }));
-      const mistakes = mistakesOn(date).map((m) => ({ subject: subjectName(m.subjectId), summary: m.summary, reason: m.reason, tags: m.tags }));
+      const mistakes = mistakesOn(date).map((m) => ({ subject: subjectName(m.subjectId), questionType: m.questionType || '', summary: m.summary, reason: m.reason, tags: m.tags }));
       return { date, totalStudyMinutes: totalMinutesForDate(date), plans, sessions, mistakes };
     }
 
@@ -1458,7 +1702,17 @@
       $('timerSubject').addEventListener('change', () => { app.timer.selectedSubjectId = $('timerSubject').value; renderTimer(); });
       $('addPlanBtn').addEventListener('click', () => openPlanModal());
       $('addMistakeBtn').addEventListener('click', () => openMistakeModal());
-      $('mistakeFilterSubject').addEventListener('change', renderMistakes);
+      $('mistakeFilterSubject').addEventListener('change', () => {
+        populateQuestionTypeSelect($('mistakeFilterType'), $('mistakeFilterSubject').value, { includeAll: true });
+        renderMistakes();
+      });
+      $('mistakeFilterType').addEventListener('change', renderMistakes);
+      $('dailySubjectFilter').addEventListener('change', renderCharts);
+      $('mistakeTrendSubjectFilter').addEventListener('change', () => {
+        populateQuestionTypeSelect($('mistakeTrendTypeFilter'), $('mistakeTrendSubjectFilter').value, { includeAll: true });
+        renderCharts();
+      });
+      $('mistakeTrendTypeFilter').addEventListener('change', renderCharts);
       $('saveReviewBtn').addEventListener('click', saveReview);
       $('aiReviewBtn').addEventListener('click', generateAiReview);
       $('dashboardAiBtn').addEventListener('click', generateDashboardReminder);
@@ -1502,6 +1756,9 @@
         const mistakeDelete = event.target.closest('[data-mistake-delete]');
         const subjectEdit = event.target.closest('[data-subject-edit]');
         const subjectDelete = event.target.closest('[data-subject-delete]');
+        const subjectTypes = event.target.closest('[data-subject-types]');
+        const typeEdit = event.target.closest('[data-type-edit]');
+        const typeDelete = event.target.closest('[data-type-delete]');
         const reviewLoad = event.target.closest('[data-review-load]');
         if (planEdit) openPlanModal(planEdit.dataset.planEdit);
         if (planDelete && confirm('确定删除该计划吗？')) {
@@ -1515,6 +1772,15 @@
         }
         if (subjectEdit) editSubject(subjectEdit.dataset.subjectEdit);
         if (subjectDelete) deleteSubject(subjectDelete.dataset.subjectDelete);
+        if (subjectTypes) openQuestionTypeManager(subjectTypes.dataset.subjectTypes);
+        if (typeEdit) {
+          const next = prompt('请输入新的题型名称：', typeEdit.dataset.typeName);
+          if (renameQuestionType(typeEdit.dataset.typeEdit, typeEdit.dataset.typeName, next)) {
+            renderTypeManagerList(typeEdit.dataset.typeEdit);
+            renderAll();
+          }
+        }
+        if (typeDelete) deleteQuestionType(typeDelete.dataset.typeDelete, typeDelete.dataset.typeName);
         if (reviewLoad) {
           $('reviewDate').value = reviewLoad.dataset.reviewLoad;
           $('reviewType').value = reviewLoad.dataset.reviewType;
