@@ -2051,35 +2051,36 @@
         const sr = r.subjectReviews || [];
         const checked = app._selectedReviews.has(key) ? 'checked' : '';
         return `
-          <div class="item" style="margin-bottom:8px;">
-            <div class="item-main" style="display:flex;align-items:flex-start;gap:8px;">
-              <input type="checkbox" class="review-select-cb" data-review-key="${escapeHtml(key)}" ${checked} style="flex-shrink:0;margin-top:3px;" />
-              <div style="min-width:0;flex:1;">
+          <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;">
+            <input type="checkbox" class="review-select-cb" data-review-key="${escapeHtml(key)}" ${checked}
+              style="flex-shrink:0;margin-top:14px;" />
+            <div class="item" style="flex:1;margin-bottom:0;">
+              <div class="item-main">
                 <div class="item-title">${escapeHtml(r.date)} · ${r.type === 'weekly' ? '每周复盘' : '每日复盘'}</div>
                 <div class="small muted">${escapeHtml((r.done || '未填写完成情况').slice(0, 70))}</div>
                 ${sr.length ? `<div class="small muted">${sr.length} 个科目复盘</div>` : ''}
               </div>
-            </div>
-            <div class="item-actions">
-              <button class="btn" data-review-load="${escapeHtml(r.date)}" data-review-type="${escapeHtml(r.type)}">查看</button>
-              <button class="btn" data-review-expand="${escapeHtml(key)}">${isExpanded ? '收起' : '展开'}</button>
-              <button class="btn danger" data-review-delete="${escapeHtml(key)}">删除</button>
-            </div>
-            ${isExpanded ? `
-              <div style="margin-top:8px;padding:8px;background:rgba(255,255,255,0.4);border-radius:12px;width:100%;">
-                <div class="small" style="margin-bottom:4px;"><strong>完成情况：</strong>${escapeHtml(r.done || '无')}</div>
-                <div class="small" style="margin-bottom:4px;"><strong>困难不足：</strong>${escapeHtml(r.problems || '无')}</div>
-                <div class="small" style="margin-bottom:4px;"><strong>改进措施：</strong>${escapeHtml(r.actions || '无')}</div>
-                <div class="small" style="margin-bottom:4px;"><strong>明日重点：</strong>${escapeHtml(r.tomorrow || '无')}</div>
-                ${sr.length ? '<div style="margin-top:6px;"><strong>科目复盘：</strong></div>' : ''}
-                ${sr.map((srb) => `
-                  <div class="subject-review-block" style="margin-top:4px;">
-                    <div class="small"><strong>${escapeHtml(subjectName(srb.subjectId))}${srb.questionType ? ' - ' + escapeHtml(srb.questionType) : ''}</strong></div>
-                    <div class="small">${escapeHtml(srb.content || '无内容')}</div>
-                  </div>
-                `).join('')}
+              <div class="item-actions">
+                <button class="btn" data-review-load="${escapeHtml(r.date)}" data-review-type="${escapeHtml(r.type)}">查看</button>
+                <button class="btn" data-review-expand="${escapeHtml(key)}">${isExpanded ? '收起' : '展开'}</button>
+                <button class="btn danger" data-review-delete="${escapeHtml(key)}">删除</button>
               </div>
-            ` : ''}
+              ${isExpanded ? `
+                <div style="margin-top:8px;padding:8px;background:rgba(255,255,255,0.4);border-radius:12px;width:100%;">
+                  <div class="small" style="margin-bottom:4px;"><strong>完成情况：</strong>${escapeHtml(r.done || '无')}</div>
+                  <div class="small" style="margin-bottom:4px;"><strong>困难不足：</strong>${escapeHtml(r.problems || '无')}</div>
+                  <div class="small" style="margin-bottom:4px;"><strong>改进措施：</strong>${escapeHtml(r.actions || '无')}</div>
+                  <div class="small" style="margin-bottom:4px;"><strong>明日重点：</strong>${escapeHtml(r.tomorrow || '无')}</div>
+                  ${sr.length ? '<div style="margin-top:6px;"><strong>科目复盘：</strong></div>' : ''}
+                  ${sr.map((srb) => `
+                    <div class="subject-review-block" style="margin-top:4px;">
+                      <div class="small"><strong>${escapeHtml(subjectName(srb.subjectId))}${srb.questionType ? ' - ' + escapeHtml(srb.questionType) : ''}</strong></div>
+                      <div class="small">${escapeHtml(srb.content || '无内容')}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
           </div>
         `;
       }).join('');
