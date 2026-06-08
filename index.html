@@ -13761,6 +13761,9 @@
                 <button class="btn" id="copyAiReviewBtn" disabled>
                   复制纯文本
                 </button>
+                <button class="btn" id="clearAiReviewBtn" disabled>
+                  清空文本框
+                </button>
               </div>
             </div>
             <div class="card">
@@ -16423,11 +16426,13 @@
           target.textContent = "";
           plainTextTarget.value = plainText;
           copyBtn.disabled = !plainText.trim();
+          $("clearAiReviewBtn").disabled = !plainText.trim();
         } catch (err) {
           const message = err.message || String(err);
           target.textContent = "";
           plainTextTarget.value = message;
           copyBtn.disabled = !message.trim();
+          $("clearAiReviewBtn").disabled = !message.trim();
         }
       }
 
@@ -16440,14 +16445,14 @@
             {
               role: "system",
               content:
-                "你是公务员考试备考提醒助手。输出 3-5 条冷静、具体、可执行的提醒。请用 Markdown 输出，使用编号列表。",
+                "你是公务员考试备考提醒助手。输出 3-5 条冷静、具体、可执行的提醒。请用纯文本分点输出，不要使用 Markdown，不要使用星号、井号、下划线、反引号。每条建议前用 1、2、3、4、5 编号。",
             },
             {
               role: "user",
               content: `请基于今天的计划完成情况、学习时间和错题数据给出智能提醒：${JSON.stringify(summary, null, 2)}`,
             },
           ]);
-          target.innerHTML = renderMarkdown(content);
+          target.textContent = content;
         } catch (err) {
           target.textContent = err.message;
         }
@@ -16457,10 +16462,6 @@
         const source = String(text || "").replace(/\r\n/g, "\n");
         const lines = source.split("\n");
         const output = [];
-        let level1 = 0;
-        let level2 = 0;
-        let level3 = 0;
-        let level4 = 0;
         let lastBlank = false;
 
         const pushBlank = () => {
@@ -16473,55 +16474,22 @@
           lastBlank = false;
         };
 
-        const stripMarkdown = (line) =>
+        const clean = (line) =>
           line
             .replace(/\*\*(.+?)\*\*/g, "$1")
             .replace(/\*(.+?)\*/g, "$1")
-            .replace(/^\s*[#>]+\s*/, "")
+            .replace(/[`_~]/g, "")
+            .replace(/^\s*[#>-]+\s*/, "")
             .trim();
 
         for (const rawLine of lines) {
-          const line = stripMarkdown(rawLine);
+          const line = clean(rawLine);
           if (!line) {
             pushBlank();
             continue;
           }
-          if (/^(?:#{1,6})\s+/.test(rawLine)) {
-            level1 += 1;
-            level2 = 0;
-            level3 = 0;
-            level4 = 0;
-            pushLine(`${level1}、${line.replace(/^(?:#{1,6})\s+/, "")}`);
-            continue;
-          }
-          if (/^[一二三四五六七八九十]+[、.]/.test(line)) {
-            level1 += 1;
-            level2 = 0;
-            level3 = 0;
-            level4 = 0;
-            pushLine(`${level1}、${line.replace(/^[一二三四五六七八九十]+[、.]/, "")}`);
-            continue;
-          }
-          if (/^\（[一二三四五六七八九十]+\）/.test(line)) {
-            level2 += 1;
-            level3 = 0;
-            level4 = 0;
-            pushLine(`（${level2}）${line.replace(/^\（[一二三四五六七八九十]+\）/, "")}`);
-            continue;
-          }
-          if (/^\d+[、.]/.test(line)) {
-            level3 += 1;
-            level4 = 0;
-            pushLine(`${level3}、${line.replace(/^\d+[、.]/, "")}`);
-            continue;
-          }
-          if (/^\(\d+\)/.test(line)) {
-            level4 += 1;
-            pushLine(`(${level4})${line.replace(/^\(\d+\)/, "")}`);
-            continue;
-          }
-          if (/^[*-]\s+/.test(line)) {
-            pushLine(`    ${line.replace(/^[*-]\s+/, "")}`);
+          if (/^[-*]\s+/.test(line)) {
+            pushLine(line.replace(/^[-*]\s+/, ""));
             continue;
           }
           pushLine(line);
@@ -16611,6 +16579,12 @@
               $("copyAiReviewBtn").textContent = "复制纯文本";
             }, 1200);
           }
+        });
+        $("clearAiReviewBtn").addEventListener("click", () => {
+          $("aiReviewResult").textContent = "";
+          $("aiReviewPlainText").value = "";
+          $("copyAiReviewBtn").disabled = true;
+          $("clearAiReviewBtn").disabled = true;
         });
         $("addSubjectReviewBtn").addEventListener("click", () => {
           if (!app._subjectReviews) app._subjectReviews = [];
