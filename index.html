@@ -2052,11 +2052,13 @@
         const checked = app._selectedReviews.has(key) ? 'checked' : '';
         return `
           <div class="item" style="margin-bottom:8px;">
-            <input type="checkbox" class="review-select-cb" data-review-key="${escapeHtml(key)}" ${checked} style="flex-shrink:0;align-self:center;margin-right:4px;" />
-            <div class="item-main">
-              <div class="item-title">${escapeHtml(r.date)} · ${r.type === 'weekly' ? '每周复盘' : '每日复盘'}</div>
-              <div class="small muted">${escapeHtml((r.done || '未填写完成情况').slice(0, 70))}</div>
-              ${sr.length ? `<div class="small muted">${sr.length} 个科目复盘</div>` : ''}
+            <div style="display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0;">
+              <input type="checkbox" class="review-select-cb" data-review-key="${escapeHtml(key)}" ${checked} style="flex-shrink:0;margin-top:3px;" />
+              <div class="item-main">
+                <div class="item-title">${escapeHtml(r.date)} · ${r.type === 'weekly' ? '每周复盘' : '每日复盘'}</div>
+                <div class="small muted">${escapeHtml((r.done || '未填写完成情况').slice(0, 70))}</div>
+                ${sr.length ? `<div class="small muted">${sr.length} 个科目复盘</div>` : ''}
+              </div>
             </div>
             <div class="item-actions">
               <button class="btn" data-review-load="${escapeHtml(r.date)}" data-review-type="${escapeHtml(r.type)}">查看</button>
