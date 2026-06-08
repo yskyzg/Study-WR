@@ -2569,7 +2569,25 @@
         if (!btn) return;
         $('reviewFilterTabs').querySelectorAll('.tab-chip').forEach((b) => b.classList.toggle('active', b === btn));
         app._reviewFilter = btn.dataset.reviewFilter;
+        app._selectedReviews.clear();
         renderReviewHistory();
+      });
+      $('batchExportZipBtn').addEventListener('click', batchExportZip);
+      $('selectAllReviews').addEventListener('change', () => {
+        const filter = app._reviewFilter || 'all';
+        const entries = Object.values(app.state.reviews).filter((r) => filter === 'all' || r.type === filter);
+        if ($('selectAllReviews').checked) {
+          entries.forEach((r) => app._selectedReviews.add(reviewKey(r.date, r.type)));
+        } else {
+          entries.forEach((r) => app._selectedReviews.delete(reviewKey(r.date, r.type)));
+        }
+        renderReviewHistory();
+      });
+      document.querySelectorAll('input[name="exportFormat"]').forEach((radio) => {
+        radio.addEventListener('change', () => {
+          const v = document.querySelector('input[name="exportFormat"]:checked')?.value;
+          $('pdfExportNote').style.display = v === 'pdf' ? 'block' : 'none';
+        });
       });
       $('saveSubjectBtn').addEventListener('click', saveSubject);
       $('cancelSubjectEditBtn').addEventListener('click', () => { $('subjectEditingId').value = ''; $('subjectName').value = ''; $('subjectColor').value = '#6aa9e8'; });
@@ -2715,6 +2733,18 @@
       });
 
       document.addEventListener('change', (event) => {
+        const reviewCb = event.target.closest('.review-select-cb');
+        if (reviewCb) {
+          const key = reviewCb.dataset.reviewKey;
+          if (reviewCb.checked) app._selectedReviews.add(key);
+          else app._selectedReviews.delete(key);
+          const filter = app._reviewFilter || 'all';
+          const entries = Object.values(app.state.reviews)
+            .filter((r) => filter === 'all' || r.type === filter)
+            .sort((a, b) => `${b.date}_${b.type}`.localeCompare(`${a.date}_${a.type}`));
+          updateBatchBar(entries);
+          return;
+        }
         const toggle = event.target.closest('[data-plan-toggle]');
         if (toggle) {
           const plan = app.state.plans.find((p) => p.id === toggle.dataset.planToggle);
