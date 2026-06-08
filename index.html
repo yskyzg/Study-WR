@@ -2041,6 +2041,7 @@
       const container = $('reviewHistory');
       if (!entries.length) {
         container.innerHTML = '<div class="muted small">暂无历史复盘</div>';
+        updateBatchBar([]);
         return;
       }
       const expandedKey = app._expandedReviewKey;
@@ -2048,8 +2049,10 @@
         const key = reviewKey(r.date, r.type);
         const isExpanded = expandedKey === key;
         const sr = r.subjectReviews || [];
+        const checked = app._selectedReviews.has(key) ? 'checked' : '';
         return `
           <div class="item" style="margin-bottom:8px;">
+            <input type="checkbox" class="review-select-cb" data-review-key="${escapeHtml(key)}" ${checked} style="flex-shrink:0;align-self:center;margin-right:4px;" />
             <div class="item-main">
               <div class="item-title">${escapeHtml(r.date)} · ${r.type === 'weekly' ? '每周复盘' : '每日复盘'}</div>
               <div class="small muted">${escapeHtml((r.done || '未填写完成情况').slice(0, 70))}</div>
@@ -2078,6 +2081,7 @@
           </div>
         `;
       }).join('');
+      updateBatchBar(entries);
     }
 
     function buildReviewTxt(review) {
