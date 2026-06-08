@@ -2052,9 +2052,9 @@
         const checked = app._selectedReviews.has(key) ? 'checked' : '';
         return `
           <div class="item" style="margin-bottom:8px;">
-            <div style="display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0;">
+            <div class="item-main" style="display:flex;align-items:flex-start;gap:8px;">
               <input type="checkbox" class="review-select-cb" data-review-key="${escapeHtml(key)}" ${checked} style="flex-shrink:0;margin-top:3px;" />
-              <div class="item-main">
+              <div style="min-width:0;flex:1;">
                 <div class="item-title">${escapeHtml(r.date)} · ${r.type === 'weekly' ? '每周复盘' : '每日复盘'}</div>
                 <div class="small muted">${escapeHtml((r.done || '未填写完成情况').slice(0, 70))}</div>
                 ${sr.length ? `<div class="small muted">${sr.length} 个科目复盘</div>` : ''}
