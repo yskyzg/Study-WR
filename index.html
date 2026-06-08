@@ -2131,6 +2131,60 @@
       </style></head><body>${body}</body></html>`;
     }
 
+    function updateBatchBar(entries) {
+      const sel = app._selectedReviews;
+      const keys = entries.map((r) => reviewKey(r.date, r.type));
+      const selectedInView = keys.filter((k) => sel.has(k));
+      $('selectedReviewCount').textContent = `已选 ${sel.size} 条`;
+      $('batchExportZipBtn').disabled = sel.size === 0;
+      const cb = $('selectAllReviews');
+      if (!keys.length) {
+        cb.checked = false;
+        cb.indeterminate = false;
+      } else if (selectedInView.length === keys.length) {
+        cb.checked = true;
+        cb.indeterminate = false;
+      } else if (selectedInView.length > 0) {
+        cb.checked = false;
+        cb.indeterminate = true;
+      } else {
+        cb.checked = false;
+        cb.indeterminate = false;
+      }
+    }
+
+    async function batchExportZip() {
+      if (typeof JSZip === 'undefined') {
+        alert('JSZip 加载失败，请检查网络连接后重试。');
+        return;
+      }
+      const keys = [...app._selectedReviews];
+      if (!keys.length) return;
+      const format = document.querySelector('input[name="exportFormat"]:checked')?.value || 'txt';
+      const zip = new JSZip();
+      keys.forEach((key) => {
+        const review = app.state.reviews[key];
+        if (!review) return;
+        const date = review.date || todayISO();
+        const baseName = `复盘_${date}_${review.type}`;
+        if (format === 'txt') {
+          zip.file(`${baseName}.txt`, buildReviewTxt(review));
+        } else if (format === 'html') {
+          zip.file(`${baseName}.html`, buildReviewHtml(review));
+        } else {
+          zip.file(`pdf/${baseName}.html`, buildReviewHtml(review));
+        }
+      });
+      const dateStr = todayISO().replace(/-/g, '');
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `复盘导出_${keys.length}条_${dateStr}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
     function exportReviewTxt() {
       const key = currentReviewKey();
       const review = app.state.reviews[key];
