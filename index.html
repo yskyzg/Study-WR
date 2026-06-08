@@ -759,6 +759,25 @@
               <button class="tab-chip" data-review-filter="daily">每日复盘</button>
               <button class="tab-chip" data-review-filter="weekly">每周复盘</button>
             </div>
+            <div id="batchExportBar" style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin:10px 0 4px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;">
+                  <input type="checkbox" id="selectAllReviews" />全选
+                </label>
+                <span id="selectedReviewCount" class="small muted">已选 0 条</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                  <label style="font-size:13px;cursor:pointer;"><input type="radio" name="exportFormat" value="txt" checked /> TXT</label>
+                  <label style="font-size:13px;cursor:pointer;"><input type="radio" name="exportFormat" value="html" /> HTML</label>
+                  <label style="font-size:13px;cursor:pointer;"><input type="radio" name="exportFormat" value="pdf" /> 打印为PDF</label>
+                  <button class="btn" id="batchExportZipBtn" disabled>导出 ZIP</button>
+                </div>
+                <span id="pdfExportNote" class="small muted" style="display:none;max-width:300px;text-align:right;">
+                  选择「打印为PDF」时，将导出带打印样式的 HTML 文件，用浏览器打开后按 Ctrl+P（Mac: ⌘P）另存为 PDF。
+                </span>
+              </div>
+            </div>
             <div class="list" id="reviewHistory"></div>
           </div>
         </div>
