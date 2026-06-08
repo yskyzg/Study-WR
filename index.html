@@ -2080,10 +2080,7 @@
       }).join('');
     }
 
-    function exportReviewTxt() {
-      const key = currentReviewKey();
-      const review = app.state.reviews[key];
-      if (!review) { alert('请先保存当前复盘再导出。'); return; }
+    function buildReviewTxt(review) {
       const date = review.date || todayISO();
       const typeLabel = review.type === 'weekly' ? '每周复盘' : '每日复盘';
       const sr = review.subjectReviews || [];
@@ -2106,11 +2103,44 @@
       text += `========================================\n`;
       text += `  导出时间：${new Date().toLocaleString()}\n`;
       text += `========================================\n`;
+      return text;
+    }
+
+    function buildReviewHtml(review) {
+      const date = review.date || todayISO();
+      const typeLabel = review.type === 'weekly' ? '每周复盘' : '每日复盘';
+      const sr = review.subjectReviews || [];
+      let body = `<div style="font-family:sans-serif;max-width:800px;margin:0 auto;padding:20px;">
+        <h2 style="text-align:center;">${escapeHtml(date)} ${typeLabel}</h2>
+        <hr/>
+        <h3>完成情况</h3><p>${escapeHtml(review.done || '无')}</p>
+        <h3>困难与不足</h3><p>${escapeHtml(review.problems || '无')}</p>
+        <h3>改进措施</h3><p>${escapeHtml(review.actions || '无')}</p>
+        <h3>明日重点</h3><p>${escapeHtml(review.tomorrow || '无')}</p>`;
+      if (sr.length) {
+        body += `<hr/><h2 style="text-align:center;">科目复盘</h2>`;
+        sr.forEach((srb) => {
+          body += `<h3>${escapeHtml(subjectName(srb.subjectId))}${srb.questionType ? ' - ' + escapeHtml(srb.questionType) : ''}</h3>
+            <p>${escapeHtml(srb.content || '无内容')}</p>`;
+        });
+      }
+      body += `<hr/><p style="text-align:center;color:#999;font-size:12px;">导出时间：${new Date().toLocaleString()}</p></div>`;
+      return `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>复盘_${escapeHtml(date)}</title><style>
+        body { font-family: -apple-system, "PingFang SC", sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; color: #1e293b; line-height: 1.7; }
+        h2 { color: #326ca9; } h3 { color: #4f8fd8; } hr { border: none; border-top: 1px solid #e2e8f0; margin: 20px 0; }
+      </style></head><body>${body}</body></html>`;
+    }
+
+    function exportReviewTxt() {
+      const key = currentReviewKey();
+      const review = app.state.reviews[key];
+      if (!review) { alert('请先保存当前复盘再导出。'); return; }
+      const text = buildReviewTxt(review);
       const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `复盘_${date}_${review.type}.txt`;
+      a.download = `复盘_${review.date || todayISO()}_${review.type}.txt`;
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -2119,30 +2149,10 @@
       const key = currentReviewKey();
       const review = app.state.reviews[key];
       if (!review) { alert('请先保存当前复盘再导出。'); return; }
-      const date = review.date || todayISO();
-      const typeLabel = review.type === 'weekly' ? '每周复盘' : '每日复盘';
-      const sr = review.subjectReviews || [];
-      let html = `<div style="font-family:sans-serif;max-width:800px;margin:0 auto;padding:20px;">
-        <h2 style="text-align:center;">${date} ${typeLabel}</h2>
-        <hr/>
-        <h3>完成情况</h3><p>${escapeHtml(review.done || '无')}</p>
-        <h3>困难与不足</h3><p>${escapeHtml(review.problems || '无')}</p>
-        <h3>改进措施</h3><p>${escapeHtml(review.actions || '无')}</p>
-        <h3>明日重点</h3><p>${escapeHtml(review.tomorrow || '无')}</p>`;
-      if (sr.length) {
-        html += `<hr/><h2 style="text-align:center;">科目复盘</h2>`;
-        sr.forEach((srb) => {
-          html += `<h3>${escapeHtml(subjectName(srb.subjectId))}${srb.questionType ? ' - ' + escapeHtml(srb.questionType) : ''}</h3>
-            <p>${escapeHtml(srb.content || '无内容')}</p>`;
-        });
-      }
-      html += `<hr/><p style="text-align:center;color:#999;font-size:12px;">导出时间：${new Date().toLocaleString()}</p></div>`;
+      const html = buildReviewHtml(review);
       const win = window.open('', '_blank');
       if (!win) { alert('请允许弹出窗口以导出 PDF。'); return; }
-      win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>复盘_${date}</title><style>
-        body { font-family: -apple-system, "PingFang SC", sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; color: #1e293b; line-height: 1.7; }
-        h2 { color: #326ca9; } h3 { color: #4f8fd8; } hr { border: none; border-top: 1px solid #e2e8f0; margin: 20px 0; }
-      </style></head><body>${html}</body></html>`);
+      win.document.write(html);
       win.document.close();
       setTimeout(() => { win.print(); }, 300);
     }
