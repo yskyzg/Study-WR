@@ -16977,25 +16977,56 @@
             mode === "weekly"
               ? buildDataSummaryForRange(addDaysISO(date, -6), date)
               : buildDataSummary(date);
-          const formatRule =
-            "使用分点结构，不要使用 Markdown、不要使用标题符号 #、不要使用星号、不要使用粗体。层级请按’一、二、三……’、’（一）（二）（三）……’、’1、2、3……’、’(1)(2)(3)……’ 这几种形式之一组织。";
-          const systemPrompt =
+
+          const fieldLabels =
             mode === "weekly"
-              ? `你是公务员考试备考教练。请基于最近 7 天数据输出纯中文纯文本周复盘建议，${formatRule}`
-              : `你是公务员考试备考教练。请基于数据输出纯中文纯文本复盘建议，${formatRule}`;
+              ? { done: "本周完成情况", problems: "本周主要问题", actions: "下周改进重点", tomorrow: "下周重点计划" }
+              : { done: "今日完成情况", problems: "困难与不足", actions: "改进措施", tomorrow: "明日重点" };
+
+          const systemPrompt =
+            `你是公务员考试备考教练。请基于数据生成复盘，只输出 JSON，不要输出其他内容。` +
+            `JSON 格式：{"done":"${fieldLabels.done}内容","problems":"${fieldLabels.problems}内容","actions":"${fieldLabels.actions}内容","tomorrow":"${fieldLabels.tomorrow}内容"}。` +
+            `每个字段值为纯文本，可以换行，不要使用 Markdown、不要使用星号。`;
           const userPrompt =
             mode === "weekly"
-              ? `请根据以下最近 7 天备考数据生成周复盘，结构包括：本周完成情况、本周主要问题、下周改进重点、需要关注的科目 / 错题。数据：${JSON.stringify(summary, null, 2)}`
-              : `请根据以下备考数据生成复盘，结构包括：完成情况、问题诊断、改进措施、明日重点。数据：${JSON.stringify(summary, null, 2)}`;
+              ? `请根据以下最近 7 天备考数据生成周复盘。数据：${JSON.stringify(summary, null, 2)}`
+              : `请根据以下备考数据生成每日复盘。数据：${JSON.stringify(summary, null, 2)}`;
+
           const content = await callAi([
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
           ]);
-          const plainText = formatReviewPlainText(content);
-          target.textContent = "";
-          plainTextTarget.value = plainText;
-          copyBtn.disabled = !plainText.trim();
-          $("clearAiReviewBtn").disabled = !plainText.trim();
+
+          // 尝试解析 JSON（兼容 AI 用 ```json 包裹的情况）
+          let parsed = null;
+          try {
+            const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
+            parsed = JSON.parse(jsonMatch[1].trim());
+          } catch (_) {}
+
+          if (parsed && (parsed.done || parsed.problems || parsed.actions || parsed.tomorrow)) {
+            if (parsed.done)     $("reviewDone").value     = parsed.done;
+            if (parsed.problems) $("reviewProblems").value = parsed.problems;
+            if (parsed.actions)  $("reviewActions").value  = parsed.actions;
+            if (parsed.tomorrow) $("reviewTomorrow").value = parsed.tomorrow;
+
+            // 纯文本区域显示可读版本供复制/导出
+            const readable = [
+              `【${fieldLabels.done}】\n${parsed.done || ""}`,
+              `【${fieldLabels.problems}】\n${parsed.problems || ""}`,
+              `【${fieldLabels.actions}】\n${parsed.actions || ""}`,
+              `【${fieldLabels.tomorrow}】\n${parsed.tomorrow || ""}`,
+            ].join("\n\n");
+            plainTextTarget.value = readable;
+            target.textContent = "已填入复盘表单，请检查后保存。";
+          } else {
+            // JSON 解析失败，回退到纯文本显示
+            plainTextTarget.value = formatReviewPlainText(content);
+            target.textContent = "";
+          }
+
+          copyBtn.disabled = !plainTextTarget.value.trim();
+          $("clearAiReviewBtn").disabled = !plainTextTarget.value.trim();
         } catch (err) {
           const message = err.message || String(err);
           target.textContent = "";
