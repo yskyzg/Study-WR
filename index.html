@@ -14662,6 +14662,8 @@
         $("dashWeeklyGoalText").textContent =
           `${Math.round(weekMinutes)} / ${weeklyGoal} 分钟`;
         $("smartReminder").textContent = buildLocalReminder();
+        const savedAiReminder = localStorage.getItem("aiDashboardReminder");
+        if (savedAiReminder) $("dashboardAiResult").textContent = savedAiReminder;
         renderCharts();
       }
 
@@ -17030,6 +17032,7 @@
             },
           ]);
           target.textContent = content;
+          localStorage.setItem("aiDashboardReminder", content);
         } catch (err) {
           target.textContent = err.message;
         }
