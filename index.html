@@ -15711,117 +15711,122 @@
         btn.textContent = "生成中…";
         btn.disabled = true;
 
-        try {
-          const pdf = new jsPDF({ unit: "pt", format: "a4" });
-          const pageW = pdf.internal.pageSize.getWidth();
-          const pageH = pdf.internal.pageSize.getHeight();
-          const margin = 36;
-          const contentW = pageW - margin * 2;
-          let currentY = margin;
+        // Ensure enough vertical space remains; if not, add a new page.
+        function ensureSpace(pdf, neededPt) {
+          if (currentY + neededPt > pageH - margin) {
+            pdf.addPage();
+            currentY = margin;
+          }
+        }
 
+        // Render a DOM element via html2canvas then place it in the PDF,
+        // slicing across pages only at the TEXT level (no images inside).
+        async function placeTextBlock(pdf, el) {
+          document.body.appendChild(el);
+          let canvas;
+          try {
+            canvas = await html2canvas(el, {
+              scale: 2,
+              useCORS: true,
+              allowTaint: true,
+              backgroundColor: "#ffffff",
+              logging: false,
+            });
+          } finally {
+            document.body.removeChild(el);
+          }
+          const ptPerPx = contentW / canvas.width;
+          let srcPxY = 0;
+          while (srcPxY < canvas.height) {
+            const ptAvail = pageH - margin - currentY;
+            if (ptAvail < 4) { pdf.addPage(); currentY = margin; continue; }
+            const pxAvail = Math.floor(ptAvail / ptPerPx);
+            const pxSlice = Math.min(canvas.height - srcPxY, pxAvail);
+            if (pxSlice <= 0) { pdf.addPage(); currentY = margin; continue; }
+            const sc = document.createElement("canvas");
+            sc.width = canvas.width;
+            sc.height = pxSlice;
+            sc.getContext("2d").drawImage(canvas, 0, -srcPxY);
+            const slicePtH = pxSlice * ptPerPx;
+            pdf.addImage(sc.toDataURL("image/jpeg", 0.92), "JPEG", margin, currentY, contentW, slicePtH);
+            srcPxY += pxSlice;
+            currentY += slicePtH;
+            if (srcPxY < canvas.height) { pdf.addPage(); currentY = margin; }
+          }
+        }
+
+        // Load a base64/data-url image and return its natural dimensions.
+        function loadImg(src) {
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = src;
+          });
+        }
+
+        const pdf = new jsPDF({ unit: "pt", format: "a4" });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const margin = 36;
+        const contentW = pageW - margin * 2;
+        let currentY = margin;
+
+        try {
           for (let i = 0; i < mistakes.length; i++) {
             const m = mistakes[i];
+            const subName = escapeHtml(subjectName(m.subjectId) || "未分类");
 
-            const div = document.createElement("div");
-            div.style.cssText = [
-              "position:fixed",
-              "left:-9999px",
-              "top:0",
+            // --- Text block (no images) ---
+            const textDiv = document.createElement("div");
+            textDiv.style.cssText = [
+              "position:fixed", "left:-9999px", "top:0",
               `width:${Math.round(contentW)}px`,
-              "background:#ffffff",
-              "padding:12px 14px",
+              "background:#ffffff", "padding:10px 14px",
               "font-family:'Microsoft YaHei',PingFang SC,sans-serif",
-              "color:#1e293b",
-              "font-size:13px",
-              "line-height:1.65",
+              "color:#1e293b", "font-size:13px", "line-height:1.65",
               "box-sizing:border-box",
             ].join(";");
-
-            const subName = escapeHtml(subjectName(m.subjectId) || "未分类");
-            const imgHtml = (m.images || [])
-              .map(
-                (src) =>
-                  `<img src="${escapeHtml(src)}" style="max-width:${Math.round(contentW) - 28}px;display:block;margin:6px 0;border-radius:4px;" />`
-              )
-              .join("");
-
-            div.innerHTML = `
-              <div style="font-size:15px;font-weight:bold;margin-bottom:6px;word-break:break-all;">${i + 1}. ${escapeHtml(m.summary)}</div>
-              <div style="font-size:11px;color:#64748b;margin-bottom:6px;">${subName}${m.questionType ? " · " + escapeHtml(m.questionType) : ""} · ${escapeHtml(m.date)}</div>
-              ${m.reason ? `<div style="margin-bottom:4px;"><span style="color:#64748b;">错因：</span>${escapeHtml(m.reason)}</div>` : ""}
-              ${m.answer ? `<div style="margin-bottom:4px;"><span style="color:#64748b;">正解：</span>${escapeHtml(m.answer)}</div>` : ""}
-              ${m.tags && m.tags.length ? `<div style="font-size:11px;color:#94a3b8;margin-top:4px;">知识点：${escapeHtml(m.tags.join("、"))}</div>` : ""}
-              ${imgHtml}
+            textDiv.innerHTML = `
+              <div style="font-size:15px;font-weight:bold;margin-bottom:5px;word-break:break-all;">${i + 1}. ${escapeHtml(m.summary)}</div>
+              <div style="font-size:11px;color:#64748b;margin-bottom:5px;">${subName}${m.questionType ? " · " + escapeHtml(m.questionType) : ""} · ${escapeHtml(m.date)}</div>
+              ${m.reason ? `<div style="margin-bottom:3px;"><span style="color:#64748b;">错因：</span>${escapeHtml(m.reason)}</div>` : ""}
+              ${m.answer ? `<div style="margin-bottom:3px;"><span style="color:#64748b;">正解：</span>${escapeHtml(m.answer)}</div>` : ""}
+              ${m.tags && m.tags.length ? `<div style="font-size:11px;color:#94a3b8;margin-top:3px;">知识点：${escapeHtml(m.tags.join("、"))}</div>` : ""}
             `;
+            await placeTextBlock(pdf, textDiv);
 
-            document.body.appendChild(div);
+            // --- Images: each placed whole, never sliced ---
+            for (const src of (m.images || [])) {
+              let img;
+              try { img = await loadImg(src); } catch { continue; }
 
-            let canvas;
-            try {
-              canvas = await html2canvas(div, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: "#ffffff",
-                logging: false,
-              });
-            } finally {
-              document.body.removeChild(div);
-            }
+              // Scale image to fit contentW, preserving aspect ratio
+              const aspect = img.naturalHeight / img.naturalWidth;
+              const imgPtW = contentW;
+              const imgPtH = imgPtW * aspect;
 
-            // pt per canvas-pixel
-            const ptPerPx = contentW / canvas.width;
-
-            // If remaining space is too small to start this item, go to next page
-            if (i > 0 && pageH - margin - currentY < 60) {
-              pdf.addPage();
-              currentY = margin;
-            }
-
-            // Slice canvas across pages
-            let srcPxY = 0;
-            while (srcPxY < canvas.height) {
-              const ptAvail = pageH - margin - currentY;
-              if (ptAvail <= 0) {
-                pdf.addPage();
-                currentY = margin;
-                continue;
-              }
-              const pxAvail = Math.floor(ptAvail / ptPerPx);
-              const pxSlice = Math.min(canvas.height - srcPxY, pxAvail);
-              if (pxSlice <= 0) {
-                pdf.addPage();
-                currentY = margin;
-                continue;
+              // If image is taller than a full page, scale it down to fit one page
+              const maxImgH = pageH - margin * 2;
+              let drawW = imgPtW, drawH = imgPtH;
+              if (drawH > maxImgH) {
+                drawH = maxImgH;
+                drawW = drawH / aspect;
               }
 
-              const sliceCanvas = document.createElement("canvas");
-              sliceCanvas.width = canvas.width;
-              sliceCanvas.height = pxSlice;
-              sliceCanvas.getContext("2d").drawImage(canvas, 0, -srcPxY);
-
-              const slicePtH = pxSlice * ptPerPx;
-              pdf.addImage(
-                sliceCanvas.toDataURL("image/jpeg", 0.92),
-                "JPEG",
-                margin,
-                currentY,
-                contentW,
-                slicePtH
-              );
-
-              srcPxY += pxSlice;
-              currentY += slicePtH;
-
-              if (srcPxY < canvas.height) {
+              // Never split an image — if it doesn't fit, start a new page
+              if (currentY + drawH > pageH - margin) {
                 pdf.addPage();
                 currentY = margin;
               }
+
+              pdf.addImage(src, margin + (contentW - drawW) / 2, currentY, drawW, drawH);
+              currentY += drawH + 6;
             }
 
-            // Separator between items
+            // --- Separator between mistakes ---
             if (i < mistakes.length - 1) {
-              currentY += 8;
+              currentY += 6;
               if (pageH - margin - currentY >= 14) {
                 pdf.setDrawColor(200, 210, 220);
                 pdf.line(margin, currentY, pageW - margin, currentY);
