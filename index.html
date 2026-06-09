@@ -13343,6 +13343,123 @@
         line-height: 1.7;
       }
 
+      /* AI解答 — 外部工具卡片 */
+      .ai-ext-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .ai-ext-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 16px 10px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.55);
+        border: 1px solid rgba(148,163,184,.22);
+        text-decoration: none;
+        color: var(--text);
+        transition: 0.18s ease;
+        cursor: pointer;
+      }
+      .ai-ext-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 26px rgba(86,111,145,.16);
+        background: rgba(255,255,255,.82);
+      }
+      .ai-ext-icon { font-size: 28px; }
+      .ai-ext-name { font-weight: 700; font-size: 15px; }
+      .ai-ext-desc { font-size: 12px; color: var(--muted); }
+
+      /* AI解答 — 聊天区 */
+      .ai-chat-box {
+        min-height: 320px;
+        max-height: 480px;
+        overflow-y: auto;
+        border: 1px solid rgba(148,163,184,.22);
+        border-radius: 16px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: rgba(255,255,255,.32);
+        margin-bottom: 12px;
+      }
+      .ai-chat-bubble {
+        display: flex;
+        gap: 8px;
+        max-width: 86%;
+      }
+      .ai-chat-bubble.user { align-self: flex-end; flex-direction: row-reverse; }
+      .ai-chat-bubble.assistant { align-self: flex-start; }
+      .ai-chat-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        background: rgba(106,169,232,.2);
+      }
+      .ai-chat-bubble.user .ai-chat-avatar { background: rgba(106,169,232,.35); }
+      .ai-chat-content {
+        padding: 10px 13px;
+        border-radius: 14px;
+        font-size: 14px;
+        line-height: 1.65;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .ai-chat-bubble.user .ai-chat-content {
+        background: linear-gradient(135deg, #6aa9e8, #4f8fd8);
+        color: #fff;
+        border-bottom-right-radius: 4px;
+      }
+      .ai-chat-bubble.assistant .ai-chat-content {
+        background: rgba(255,255,255,.72);
+        border: 1px solid rgba(148,163,184,.22);
+        color: var(--text);
+        border-bottom-left-radius: 4px;
+      }
+      .ai-chat-bubble.error .ai-chat-content {
+        background: rgba(211,95,112,.1);
+        border: 1px solid rgba(211,95,112,.25);
+        color: #a44151;
+      }
+      .ai-chat-img { max-width: 200px; max-height: 180px; border-radius: 10px; margin-top: 6px; display: block; }
+      .ai-chat-input-row {
+        display: flex;
+        gap: 8px;
+        align-items: flex-end;
+      }
+      .ai-img-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: rgba(255,255,255,.6);
+        border: 1px solid rgba(148,163,184,.25);
+        cursor: pointer;
+        font-size: 18px;
+        flex-shrink: 0;
+        transition: .18s ease;
+      }
+      .ai-img-label:hover { background: rgba(255,255,255,.9); }
+
+      [data-theme="dark"] .ai-ext-card {
+        background: rgba(255,255,255,.06);
+        border-color: rgba(255,255,255,.1);
+      }
+      [data-theme="dark"] .ai-ext-card:hover { background: rgba(255,255,255,.12); }
+      [data-theme="dark"] .ai-chat-box { background: rgba(0,0,0,.15); border-color: rgba(255,255,255,.1); }
+      [data-theme="dark"] .ai-chat-bubble.assistant .ai-chat-content { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.12); }
+      [data-theme="dark"] .ai-img-label { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.12); }
+
       @media (max-width: 980px) {
         .app-shell {
           grid-template-columns: 1fr;
@@ -13360,8 +13477,9 @@
         .grid-3,
         .grid-2,
         .timer-layout,
-        .mistake-toolbar {
-          grid-template-columns: 1fr;
+        .mistake-toolbar,
+        .ai-ext-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
         .mistake-toolbar .btn {
           width: 100%;
@@ -13492,6 +13610,9 @@
           </button>
           <button class="nav-btn" data-section="reviews">
             <span class="nav-icon">✎</span><span>复盘</span>
+          </button>
+          <button class="nav-btn" data-section="ai">
+            <span class="nav-icon">✦</span><span>AI解答</span>
           </button>
           <button class="nav-btn" data-section="settings">
             <span class="nav-icon">⚙</span><span>设置</span>
@@ -14048,6 +14169,64 @@
                 </div>
               </div>
               <div class="list" id="reviewHistory"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-ai">
+          <!-- 其他AI跳转 -->
+          <div class="card" style="margin-bottom:14px">
+            <h3 style="margin:0 0 12px">其他 AI 工具</h3>
+            <div class="ai-ext-grid">
+              <a class="ai-ext-card" href="https://chat.deepseek.com/" target="_blank" rel="noopener">
+                <span class="ai-ext-icon">🐋</span>
+                <span class="ai-ext-name">DeepSeek</span>
+                <span class="ai-ext-desc">深度求索</span>
+              </a>
+              <a class="ai-ext-card" href="https://yuanbao.tencent.com/" target="_blank" rel="noopener">
+                <span class="ai-ext-icon">💎</span>
+                <span class="ai-ext-name">腾讯元宝</span>
+                <span class="ai-ext-desc">腾讯 AI</span>
+              </a>
+              <a class="ai-ext-card" href="https://www.doubao.com/" target="_blank" rel="noopener">
+                <span class="ai-ext-icon">🫘</span>
+                <span class="ai-ext-name">豆包</span>
+                <span class="ai-ext-desc">字节跳动</span>
+              </a>
+              <a class="ai-ext-card" href="https://www.kimi.com/" target="_blank" rel="noopener">
+                <span class="ai-ext-icon">🌙</span>
+                <span class="ai-ext-name">Kimi</span>
+                <span class="ai-ext-desc">月之暗面</span>
+              </a>
+            </div>
+          </div>
+          <!-- 内置AI聊天 -->
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+              <h3 style="margin:0">内置 AI 解答</h3>
+              <button class="btn small-btn danger" id="aiChatClearBtn">清空对话</button>
+            </div>
+            <!-- 提示词选择 -->
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+              <label style="white-space:nowrap;flex-shrink:0">提示词</label>
+              <select id="aiChatPromptSelect" style="flex:1;min-width:160px"></select>
+              <button class="btn small-btn" id="aiChatAddPromptBtn">新增</button>
+              <button class="btn small-btn danger" id="aiChatDelPromptBtn">删除</button>
+            </div>
+            <!-- 对话区 -->
+            <div class="ai-chat-box" id="aiChatBox"></div>
+            <!-- 输入区 -->
+            <div class="ai-chat-input-row">
+              <label class="ai-img-label" title="上传图片">
+                <input type="file" id="aiChatImgInput" accept="image/*" style="display:none" />
+                <span>🖼</span>
+              </label>
+              <div id="aiChatImgPreviewWrap" style="display:none;align-items:center;gap:4px">
+                <img id="aiChatImgPreview" style="height:36px;border-radius:8px;border:1px solid rgba(148,163,184,.3)" />
+                <button class="btn small-btn danger" id="aiChatImgClearBtn" style="padding:2px 7px">✕</button>
+              </div>
+              <textarea id="aiChatInput" rows="2" placeholder="输入问题，Ctrl+Enter 发送…" style="flex:1;resize:none;min-height:44px;max-height:120px"></textarea>
+              <button class="btn primary" id="aiChatSendBtn">发送</button>
             </div>
           </div>
         </section>
@@ -14627,6 +14806,7 @@
           plans: ["计划", "管理每日与每周备考任务"],
           mistakes: ["错题", "沉淀错因、答案与标签"],
           reviews: ["复盘", "每日 / 每周模板化复盘"],
+          ai: ["AI 解答", "内置 AI 聊天与外部 AI 工具直达"],
           settings: ["设置", "科目、番茄钟与 AI 接口配置"],
         };
         $("pageTitle").textContent = titles[section][0];
@@ -17129,6 +17309,168 @@
         $("modalBody").innerHTML = "";
       }
 
+      // ── AI 解答聊天 ─────────────────────────────────────────────────────────
+
+      const AI_CHAT_HISTORY_KEY = "aiChatHistory";
+      const AI_CHAT_PROMPTS_KEY = "aiChatPrompts";
+
+      const DEFAULT_PROMPTS = [
+        { id: "civil", name: "考公解题助手", text: "你是一名专业的公务员考试辅导老师，熟悉行测、申论等各科目。请根据用户的题目或问题，给出清晰、准确的解题思路和答案。若用户上传了图片，请结合图片内容作答。" },
+        { id: "none", name: "无提示词（通用）", text: "" },
+      ];
+
+      let aiChatHistory = [];
+      let aiChatImageDataUrl = null;
+
+      function loadAiChatPrompts() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(AI_CHAT_PROMPTS_KEY));
+          if (Array.isArray(saved) && saved.length) return saved;
+        } catch (_) {}
+        return JSON.parse(JSON.stringify(DEFAULT_PROMPTS));
+      }
+
+      function saveAiChatPrompts(prompts) {
+        localStorage.setItem(AI_CHAT_PROMPTS_KEY, JSON.stringify(prompts));
+      }
+
+      function renderAiChatPromptSelect() {
+        const prompts = loadAiChatPrompts();
+        const sel = $("aiChatPromptSelect");
+        const cur = sel.value;
+        sel.innerHTML = prompts.map(p => `<option value="${p.id}">${p.name}</option>`).join("");
+        if (prompts.find(p => p.id === cur)) sel.value = cur;
+      }
+
+      function appendChatBubble(role, text, imgDataUrl) {
+        const box = $("aiChatBox");
+        const wrap = document.createElement("div");
+        wrap.className = `ai-chat-bubble ${role}`;
+
+        const avatar = document.createElement("div");
+        avatar.className = "ai-chat-avatar";
+        avatar.textContent = role === "user" ? "🙋" : role === "error" ? "⚠️" : "🤖";
+
+        const content = document.createElement("div");
+        content.className = "ai-chat-content";
+        if (imgDataUrl) {
+          const img = document.createElement("img");
+          img.src = imgDataUrl;
+          img.className = "ai-chat-img";
+          content.appendChild(img);
+        }
+        if (text) {
+          const txt = document.createElement("span");
+          txt.textContent = text;
+          content.appendChild(txt);
+        }
+
+        wrap.appendChild(avatar);
+        wrap.appendChild(content);
+        box.appendChild(wrap);
+        box.scrollTop = box.scrollHeight;
+        return content;
+      }
+
+      async function sendAiChat() {
+        const input = $("aiChatInput");
+        const text = input.value.trim();
+        const imgDataUrl = aiChatImageDataUrl;
+        if (!text && !imgDataUrl) return;
+
+        const sendBtn = $("aiChatSendBtn");
+        sendBtn.disabled = true;
+        input.value = "";
+        clearAiChatImage();
+
+        // show user bubble
+        appendChatBubble("user", text, imgDataUrl);
+
+        // build message content
+        const userContent = [];
+        if (imgDataUrl) userContent.push({ type: "image_url", image_url: { url: imgDataUrl } });
+        if (text) userContent.push({ type: "text", text });
+        const userMsg = { role: "user", content: userContent.length === 1 && userContent[0].type === "text" ? text : userContent };
+        aiChatHistory.push(userMsg);
+
+        // typing indicator
+        const thinkingEl = appendChatBubble("assistant", "思考中…");
+
+        try {
+          const prompts = loadAiChatPrompts();
+          const selId = $("aiChatPromptSelect").value;
+          const prompt = prompts.find(p => p.id === selId);
+          const systemText = prompt ? prompt.text : "";
+
+          const messages = [];
+          if (systemText) messages.push({ role: "system", content: systemText });
+          messages.push(...aiChatHistory);
+
+          const reply = await callAi(messages);
+          thinkingEl.querySelector("span") ? thinkingEl.querySelector("span").textContent = reply : (thinkingEl.textContent = reply);
+          aiChatHistory.push({ role: "assistant", content: reply });
+        } catch (err) {
+          thinkingEl.closest(".ai-chat-bubble").className = "ai-chat-bubble error";
+          thinkingEl.querySelector("span") ? thinkingEl.querySelector("span").textContent = err.message : (thinkingEl.textContent = err.message);
+          aiChatHistory.pop();
+        } finally {
+          sendBtn.disabled = false;
+          $("aiChatBox").scrollTop = $("aiChatBox").scrollHeight;
+        }
+      }
+
+      function clearAiChatImage() {
+        aiChatImageDataUrl = null;
+        $("aiChatImgPreviewWrap").style.display = "none";
+        $("aiChatImgInput").value = "";
+      }
+
+      function initAiChatSection() {
+        renderAiChatPromptSelect();
+
+        $("aiChatSendBtn").addEventListener("click", sendAiChat);
+        $("aiChatInput").addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && e.ctrlKey) { e.preventDefault(); sendAiChat(); }
+        });
+        $("aiChatClearBtn").addEventListener("click", () => {
+          aiChatHistory = [];
+          $("aiChatBox").innerHTML = "";
+        });
+        $("aiChatImgInput").addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            aiChatImageDataUrl = ev.target.result;
+            $("aiChatImgPreview").src = aiChatImageDataUrl;
+            $("aiChatImgPreviewWrap").style.display = "flex";
+          };
+          reader.readAsDataURL(file);
+        });
+        $("aiChatImgClearBtn").addEventListener("click", clearAiChatImage);
+        $("aiChatAddPromptBtn").addEventListener("click", () => {
+          const name = prompt("提示词名称：");
+          if (!name) return;
+          const text = prompt("提示词内容：");
+          if (text === null) return;
+          const prompts = loadAiChatPrompts();
+          const id = "custom_" + Date.now();
+          prompts.push({ id, name, text });
+          saveAiChatPrompts(prompts);
+          renderAiChatPromptSelect();
+          $("aiChatPromptSelect").value = id;
+        });
+        $("aiChatDelPromptBtn").addEventListener("click", () => {
+          const sel = $("aiChatPromptSelect");
+          const id = sel.value;
+          if (id === "civil" || id === "none") { alert("内置提示词不可删除。"); return; }
+          if (!confirm("确定删除该提示词吗？")) return;
+          const prompts = loadAiChatPrompts().filter(p => p.id !== id);
+          saveAiChatPrompts(prompts);
+          renderAiChatPromptSelect();
+        });
+      }
+
       function bindEvents() {
         $("sidebarNav").addEventListener("click", (event) => {
           const btn = event.target.closest(".nav-btn");
@@ -17572,6 +17914,7 @@
         app.timer.remaining = app.timer.total;
         app.timer.elapsedSeconds = 0;
         $("reviewDate").value = todayISO();
+        initAiChatSection();
         bindEvents();
         renderAll();
       }
