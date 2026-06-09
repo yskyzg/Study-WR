@@ -12471,6 +12471,8 @@
       });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <style>
       :root {
         --bg-1: #e0f0ff;
@@ -12949,6 +12951,155 @@
       }
       .mistake-item .item-title {
         font-size: 14px;
+      }
+      .mistake-img-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .mistake-thumb {
+        position: relative;
+        width: 80px;
+        height: 60px;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1.5px solid var(--border);
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .mistake-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .mistake-thumb-del {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.55);
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        padding: 0;
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+      .mistake-thumb:hover .mistake-thumb-del {
+        opacity: 1;
+      }
+      #imageLightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        background: rgba(0, 0, 0, 0.88);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      #imageLightbox.active {
+        display: flex;
+      }
+      #lightboxImg {
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 8px;
+        object-fit: contain;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+      }
+      #lightboxClose {
+        position: fixed;
+        top: 16px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.18);
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        font-size: 22px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+      }
+      .mistake-select-cb {
+        width: 17px;
+        height: 17px;
+        cursor: pointer;
+        margin-right: 10px;
+        flex-shrink: 0;
+        accent-color: var(--accent, #6366f1);
+      }
+      .mistake-item.mis-selected {
+        outline: 2px solid rgba(99, 102, 241, 0.5);
+        background: rgba(99, 102, 241, 0.06);
+      }
+      .img-upload-area {
+        border: 2px dashed var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        text-align: center;
+        cursor: pointer;
+        color: var(--muted);
+        font-size: 13px;
+        transition: border-color 0.2s;
+        margin-top: 4px;
+        user-select: none;
+      }
+      .img-upload-area:hover {
+        border-color: var(--accent, #6366f1);
+      }
+      .modal-thumb-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .modal-thumb {
+        position: relative;
+        width: 90px;
+        height: 68px;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1.5px solid var(--border);
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .modal-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .modal-thumb-del {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(220, 38, 38, 0.85);
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        padding: 0;
       }
       .small-btn {
         font-size: 12px;
@@ -13692,7 +13843,11 @@
                   <option value="all">全部题型</option>
                 </select>
               </div>
-              <button class="btn primary" id="addMistakeBtn">新增错题</button>
+              <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+                <button class="btn" id="mistakeSelectModeBtn">批量选择</button>
+                <button class="btn" id="exportMistakePdfBtn" style="display:none;">导出PDF</button>
+                <button class="btn primary" id="addMistakeBtn">新增错题</button>
+              </div>
             </div>
           </div>
           <div class="card" style="margin-top: 16px">
@@ -14018,6 +14173,11 @@
       </main>
     </div>
 
+    <div id="imageLightbox" role="dialog" aria-modal="true" aria-label="图片预览">
+      <button id="lightboxClose" title="关闭">×</button>
+      <img id="lightboxImg" alt="图片预览" />
+    </div>
+
     <div class="modal" id="editModal" role="dialog" aria-modal="true">
       <div class="modal-panel">
         <div class="modal-head">
@@ -14032,6 +14192,9 @@
       const APP_KEY = "civilServiceExamReviewPomodoroStateV1";
       const DAY = 24 * 60 * 60 * 1000;
       const $ = (id) => document.getElementById(id);
+
+      let mistakeSelectMode = false;
+      let mistakeSelectedIds = new Set();
 
       // Central runtime state: all persisted data is nested under one localStorage key.
       const app = {
@@ -15501,6 +15664,159 @@
         return `正确率：${correct}/${total}，${Math.round((correct / total) * 100)}%`;
       }
 
+      function openImageLightbox(src) {
+        $("lightboxImg").src = src;
+        $("imageLightbox").classList.add("active");
+      }
+
+      function closeLightbox() {
+        $("imageLightbox").classList.remove("active");
+        $("lightboxImg").src = "";
+      }
+
+      function toggleMistakeSelectMode() {
+        mistakeSelectMode = !mistakeSelectMode;
+        if (!mistakeSelectMode) {
+          mistakeSelectedIds.clear();
+          $("exportMistakePdfBtn").style.display = "none";
+          $("exportMistakePdfBtn").textContent = "导出PDF";
+        } else {
+          $("exportMistakePdfBtn").style.display = "";
+          $("exportMistakePdfBtn").textContent = "导出PDF";
+        }
+        $("mistakeSelectModeBtn").textContent = mistakeSelectMode ? "取消选择" : "批量选择";
+        $("mistakeSelectModeBtn").className = mistakeSelectMode ? "btn danger" : "btn";
+        $("addMistakeBtn").style.display = mistakeSelectMode ? "none" : "";
+        renderMistakes();
+      }
+
+      function updateExportBtnLabel() {
+        const n = mistakeSelectedIds.size;
+        $("exportMistakePdfBtn").textContent = n > 0 ? `导出PDF (${n}项)` : "导出PDF";
+      }
+
+      async function exportMistakesToPdf() {
+        const ids = [...mistakeSelectedIds];
+        if (!ids.length) { alert("请先勾选要导出的错题。"); return; }
+        if (!window.jspdf) { alert("PDF 库尚未加载，请稍候重试。"); return; }
+        if (!window.html2canvas) { alert("html2canvas 库尚未加载，请稍候重试。"); return; }
+
+        const { jsPDF } = window.jspdf;
+        const mistakes = ids
+          .map((id) => app.state.mistakes.find((m) => m.id === id))
+          .filter(Boolean);
+
+        const btn = $("exportMistakePdfBtn");
+        const origText = btn.textContent;
+        btn.textContent = "生成中…";
+        btn.disabled = true;
+
+        try {
+          const pdf = new jsPDF({ unit: "pt", format: "a4" });
+          const pageW = pdf.internal.pageSize.getWidth();
+          const pageH = pdf.internal.pageSize.getHeight();
+          const margin = 36;
+          const contentW = pageW - margin * 2;
+          let currentY = margin;
+          let isFirstItem = true;
+
+          for (let i = 0; i < mistakes.length; i++) {
+            const m = mistakes[i];
+
+            const div = document.createElement("div");
+            div.style.cssText = [
+              "position:fixed",
+              "left:-9999px",
+              "top:0",
+              `width:${Math.round(contentW)}px`,
+              "background:#ffffff",
+              "padding:12px 14px",
+              "font-family:'Microsoft YaHei',PingFang SC,sans-serif",
+              "color:#1e293b",
+              "font-size:13px",
+              "line-height:1.65",
+              "box-sizing:border-box",
+            ].join(";");
+
+            const subName = escapeHtml(subjectName(m.subjectId) || "未分类");
+            const imgHtml = (m.images || [])
+              .map(
+                (src) =>
+                  `<img src="${escapeHtml(src)}" style="max-width:${Math.round(contentW) - 28}px;display:block;margin:6px 0;border-radius:4px;" />`
+              )
+              .join("");
+
+            div.innerHTML = `
+              <div style="font-size:15px;font-weight:bold;margin-bottom:6px;word-break:break-all;">${i + 1}. ${escapeHtml(m.summary)}</div>
+              <div style="font-size:11px;color:#64748b;margin-bottom:6px;">${subName}${m.questionType ? " · " + escapeHtml(m.questionType) : ""} · ${escapeHtml(m.date)}</div>
+              ${m.reason ? `<div style="margin-bottom:4px;"><span style="color:#64748b;">错因：</span>${escapeHtml(m.reason)}</div>` : ""}
+              ${m.answer ? `<div style="margin-bottom:4px;"><span style="color:#64748b;">正解：</span>${escapeHtml(m.answer)}</div>` : ""}
+              ${m.tags && m.tags.length ? `<div style="font-size:11px;color:#94a3b8;margin-top:4px;">知识点：${escapeHtml(m.tags.join("、"))}</div>` : ""}
+              ${imgHtml}
+            `;
+
+            document.body.appendChild(div);
+
+            let canvas;
+            try {
+              canvas = await html2canvas(div, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: "#ffffff",
+                logging: false,
+              });
+            } finally {
+              document.body.removeChild(div);
+            }
+
+            const aspect = canvas.height / canvas.width;
+            const imgH = contentW * aspect;
+
+            if (!isFirstItem && currentY + imgH > pageH - margin) {
+              pdf.addPage();
+              currentY = margin;
+            }
+
+            const imgData = canvas.toDataURL("image/jpeg", 0.92);
+            pdf.addImage(imgData, "JPEG", margin, currentY, contentW, imgH);
+            currentY += imgH;
+
+            if (i < mistakes.length - 1) {
+              currentY += 8;
+              if (currentY + 4 < pageH - margin) {
+                pdf.setDrawColor(200, 210, 220);
+                pdf.line(margin, currentY, pageW - margin, currentY);
+                pdf.setDrawColor(0, 0, 0);
+                currentY += 10;
+              }
+            }
+
+            isFirstItem = false;
+          }
+
+          pdf.save(`错题记录_${todayISO()}.pdf`);
+        } catch (e) {
+          alert("导出失败：" + e.message);
+        } finally {
+          btn.textContent = origText;
+          btn.disabled = false;
+        }
+      }
+
+      function renderMistakeImgStrip(images, mistakeId) {
+        if (!images || !images.length) return "";
+        return `<div class="mistake-img-strip">${images
+          .map(
+            (src, idx) =>
+              `<div class="mistake-thumb" data-lightbox-src="${escapeHtml(src)}">
+                <img src="${escapeHtml(src)}" alt="图片${idx + 1}" loading="lazy" />
+                <button class="mistake-thumb-del" data-del-img-id="${escapeHtml(mistakeId)}" data-del-img-idx="${idx}" title="删除图片">×</button>
+              </div>`
+          )
+          .join("")}</div>`;
+      }
+
       function renderMistakes() {
         const filter = $("mistakeFilterSubject").value || "all";
         const typeFilter = $("mistakeFilterType").value || "all";
@@ -15515,19 +15831,26 @@
         }
         container.innerHTML = mistakes
           .map(
-            (m) => `
-        <div class="item mistake-item">
-          <div class="item-main">
-            <div class="item-title">${escapeHtml(m.summary)}</div>
-            <div class="tag-row">${subjectPill(m.subjectId)}${m.questionType ? `<span class="tag">${escapeHtml(m.questionType)}</span>` : ""}<span class="tag">${escapeHtml(m.date)}</span>${(m.tags || []).length ? `<span class="tag">知识点：${escapeHtml(m.tags.join("、"))}</span>` : ""}</div>
-            <div class="small muted">错因：${escapeHtml(m.reason || "未填写")} · 正解：${escapeHtml(m.answer || "未填写")} · ${accuracyText(m)}</div>
+            (m) => {
+              const isSelected = mistakeSelectedIds.has(m.id);
+              return `
+        <div class="item mistake-item${isSelected ? " mis-selected" : ""}">
+          <div class="item-main" style="display:flex;align-items:flex-start;gap:0;">
+            ${mistakeSelectMode ? `<input type="checkbox" class="mistake-select-cb" data-mistake-cb="${escapeHtml(m.id)}" ${isSelected ? "checked" : ""} />` : ""}
+            <div style="flex:1;min-width:0;">
+              <div class="item-title">${escapeHtml(m.summary)}</div>
+              <div class="tag-row">${subjectPill(m.subjectId)}${m.questionType ? `<span class="tag">${escapeHtml(m.questionType)}</span>` : ""}<span class="tag">${escapeHtml(m.date)}</span>${(m.tags || []).length ? `<span class="tag">知识点：${escapeHtml(m.tags.join("、"))}</span>` : ""}</div>
+              <div class="small muted">错因：${escapeHtml(m.reason || "未填写")} · 正解：${escapeHtml(m.answer || "未填写")} · ${accuracyText(m)}</div>
+              ${renderMistakeImgStrip(m.images, m.id)}
+            </div>
           </div>
-          <div class="item-actions">
+          ${mistakeSelectMode ? "" : `<div class="item-actions">
             <button class="btn small-btn" data-mistake-edit="${m.id}">编辑</button>
             <button class="btn danger small-btn" data-mistake-delete="${m.id}">删除</button>
-          </div>
+          </div>`}
         </div>
-      `,
+      `;
+            }
           )
           .join("");
       }
@@ -15544,6 +15867,32 @@
           totalQuestions: 0,
           wrongQuestions: 0,
         };
+        let modalImages = [...(mistake.images || [])];
+
+        function renderModalThumbs() {
+          const grid = document.getElementById("mistakeModalThumbGrid");
+          if (!grid) return;
+          grid.innerHTML = modalImages
+            .map(
+              (src, idx) =>
+                `<div class="modal-thumb">
+                  <img src="${escapeHtml(src)}" alt="图片${idx + 1}" />
+                  <button class="modal-thumb-del" data-modal-del-idx="${idx}" title="删除">×</button>
+                </div>`
+            )
+            .join("");
+          grid.querySelectorAll("[data-modal-del-idx]").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              modalImages.splice(Number(btn.dataset.modalDelIdx), 1);
+              renderModalThumbs();
+            });
+          });
+          grid.querySelectorAll(".modal-thumb img").forEach((img, idx) => {
+            img.addEventListener("click", () => openImageLightbox(modalImages[idx]));
+          });
+        }
+
         openModal(
           mistakeId ? "编辑错题" : "新增错题",
           `
@@ -15560,9 +15909,51 @@
         <div class="field"><label for="mistakeReasonInput">错因</label><textarea id="mistakeReasonInput">${escapeHtml(mistake.reason)}</textarea></div>
         <div class="field"><label for="mistakeAnswerInput">正确答案 / 解法</label><textarea id="mistakeAnswerInput">${escapeHtml(mistake.answer)}</textarea></div>
         <div class="field"><label for="mistakeTagsInput">知识点（中英文逗号分隔皆可）</label><input id="mistakeTagsInput" placeholder="例如：增长率公式、逻辑推理" value="${escapeHtml((mistake.tags || []).join(", "))}" /></div>
+        <div class="field">
+          <label>题目图片</label>
+          <div class="img-upload-area" id="mistakeImgUploadArea">点击或拖拽图片上传（支持 JPG / PNG / GIF / WebP）</div>
+          <input type="file" id="mistakeImgFileInput" accept="image/*" multiple style="display:none;" />
+          <div class="modal-thumb-grid" id="mistakeModalThumbGrid"></div>
+        </div>
         <div class="btn-row" style="margin-top:14px;"><button class="btn primary" id="saveMistakeModalBtn">保存</button></div>
       `,
         );
+
+        renderModalThumbs();
+
+        const imgUploadArea = $("mistakeImgUploadArea");
+        const imgFileInput = $("mistakeImgFileInput");
+
+        imgUploadArea.addEventListener("click", () => imgFileInput.click());
+        imgUploadArea.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          imgUploadArea.style.borderColor = "var(--accent, #6366f1)";
+        });
+        imgUploadArea.addEventListener("dragleave", () => {
+          imgUploadArea.style.borderColor = "";
+        });
+        imgUploadArea.addEventListener("drop", (e) => {
+          e.preventDefault();
+          imgUploadArea.style.borderColor = "";
+          handleImageFiles(e.dataTransfer.files);
+        });
+        imgFileInput.addEventListener("change", () => {
+          handleImageFiles(imgFileInput.files);
+          imgFileInput.value = "";
+        });
+
+        function handleImageFiles(files) {
+          Array.from(files).forEach((file) => {
+            if (!file.type.startsWith("image/")) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              modalImages.push(ev.target.result);
+              renderModalThumbs();
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+
         populateSubjectSelect($("mistakeSubjectInput"), { includeEmpty: true });
         $("mistakeSubjectInput").value = mistake.subjectId;
         populateQuestionTypeSelect(
@@ -15630,6 +16021,7 @@
               .map((tag) => tag.trim())
               .filter(Boolean),
             date: $("mistakeDateInput").value || todayISO(),
+            images: modalImages,
           };
           if (mistakeId) Object.assign(mistake, payload);
           else app.state.mistakes.push({ id: uid("mis"), ...payload });
@@ -16609,15 +17001,27 @@
           renderPlans();
         });
         $("addMistakeBtn").addEventListener("click", () => openMistakeModal());
+        $("mistakeSelectModeBtn").addEventListener("click", toggleMistakeSelectMode);
+        $("exportMistakePdfBtn").addEventListener("click", exportMistakesToPdf);
+        $("lightboxClose").addEventListener("click", closeLightbox);
+        $("imageLightbox").addEventListener("click", (e) => {
+          if (e.target === $("imageLightbox")) closeLightbox();
+        });
         $("mistakeFilterSubject").addEventListener("change", () => {
           populateQuestionTypeSelect(
             $("mistakeFilterType"),
             $("mistakeFilterSubject").value,
             { includeAll: true },
           );
+          mistakeSelectedIds.clear();
+          updateExportBtnLabel();
           renderMistakes();
         });
-        $("mistakeFilterType").addEventListener("change", renderMistakes);
+        $("mistakeFilterType").addEventListener("change", () => {
+          mistakeSelectedIds.clear();
+          updateExportBtnLabel();
+          renderMistakes();
+        });
         $("dailySubjectFilter").addEventListener("change", renderCharts);
         $("mistakeTrendSubjectFilter").addEventListener("change", () => {
           populateQuestionTypeSelect(
@@ -16856,6 +17260,23 @@
         });
 
         document.addEventListener("click", (event) => {
+          const lightboxThumb = event.target.closest("[data-lightbox-src]");
+          if (lightboxThumb && !event.target.closest("[data-del-img-id]")) {
+            openImageLightbox(lightboxThumb.dataset.lightboxSrc);
+            return;
+          }
+          const delImg = event.target.closest("[data-del-img-id]");
+          if (delImg) {
+            const mistakeId = delImg.dataset.delImgId;
+            const imgIdx = Number(delImg.dataset.delImgIdx);
+            const m = app.state.mistakes.find((x) => x.id === mistakeId);
+            if (m && m.images) {
+              m.images.splice(imgIdx, 1);
+              saveState();
+              renderMistakes();
+            }
+            return;
+          }
           const planEdit = event.target.closest("[data-plan-edit]");
           const planDelete = event.target.closest("[data-plan-delete]");
           const mistakeEdit = event.target.closest("[data-mistake-edit]");
@@ -16934,6 +17355,16 @@
         });
 
         document.addEventListener("change", (event) => {
+          const misCb = event.target.closest("[data-mistake-cb]");
+          if (misCb) {
+            const id = misCb.dataset.mistakeCb;
+            if (misCb.checked) mistakeSelectedIds.add(id);
+            else mistakeSelectedIds.delete(id);
+            updateExportBtnLabel();
+            const item = misCb.closest(".mistake-item");
+            if (item) item.classList.toggle("mis-selected", misCb.checked);
+            return;
+          }
           const reviewCb = event.target.closest(".review-select-cb");
           if (reviewCb) {
             const key = reviewCb.dataset.reviewKey;
