@@ -13477,14 +13477,14 @@
           <p>冷静复盘 · 专注推进 · 数据留痕</p>
         </div>
         <nav class="nav" id="sidebarNav">
+          <button class="nav-btn" data-section="plans">
+            <span class="nav-icon">□</span><span>计划</span>
+          </button>
           <button class="nav-btn active" data-section="dashboard">
             <span class="nav-icon">⌂</span><span>仪表盘</span>
           </button>
           <button class="nav-btn" data-section="pomodoro">
             <span class="nav-icon">◷</span><span>番茄钟</span>
-          </button>
-          <button class="nav-btn" data-section="plans">
-            <span class="nav-icon">□</span><span>计划</span>
           </button>
           <button class="nav-btn" data-section="mistakes">
             <span class="nav-icon">◇</span><span>错题</span>
@@ -13496,9 +13496,7 @@
             <span class="nav-icon">⚙</span><span>设置</span>
           </button>
         </nav>
-        <div class="notice small">
-          所有数据仅保存在当前浏览器 localStorage 的一个应用状态键中。
-        </div>
+        <div class="notice small">所有数据仅保存在当前浏览器 localStorage 的一个应用状态键中。</div>
       </aside>
 
       <main class="main">
@@ -13758,9 +13756,7 @@
                   保存时长
                 </button>
               </div>
-              <div class="notice small" style="margin-top: 12px">
-                专注结束会自动播放提示音，并把本轮专注时长记入所选科目；休息时间不计入学习。倒计时提前完成或正向计时手动结束时，都可以点击"结束并记录"。
-              </div>
+              <div class="notice small" style="margin-top: 12px">专注结束会自动播放提示音，并把本轮专注时长记入所选科目；休息时间不计入学习。倒计时提前完成或正向计时手动结束时，都可以点击"结束并记录"。</div>
             </div>
           </div>
           <div class="grid grid-3" style="margin-top: 14px">
@@ -13843,9 +13839,22 @@
                   <option value="all">全部题型</option>
                 </select>
               </div>
-              <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+              <div
+                style="
+                  display: flex;
+                  gap: 8px;
+                  align-items: flex-end;
+                  flex-wrap: wrap;
+                "
+              >
                 <button class="btn" id="mistakeSelectModeBtn">批量选择</button>
-                <button class="btn" id="exportMistakePdfBtn" style="display:none;">导出PDF</button>
+                <button
+                  class="btn"
+                  id="exportMistakePdfBtn"
+                  style="display: none"
+                >
+                  导出PDF
+                </button>
                 <button class="btn primary" id="addMistakeBtn">新增错题</button>
               </div>
             </div>
@@ -13872,7 +13881,11 @@
                   </select>
                 </div>
               </div>
-              <div class="small muted" id="reviewModeHint" style="margin-top: 6px"></div>
+              <div
+                class="small muted"
+                id="reviewModeHint"
+                style="margin-top: 6px"
+              ></div>
               <div class="notice small" id="reviewSummary"></div>
               <div class="field" style="margin-top: 12px">
                 <label for="reviewDone">今日完成情况</label
@@ -14116,7 +14129,10 @@
               </div>
               <div class="field">
                 <label for="providerName">供应商名称</label>
-                <input id="providerName" placeholder="例如：DeepSeek / OpenAI" />
+                <input
+                  id="providerName"
+                  placeholder="例如：DeepSeek / OpenAI"
+                />
               </div>
               <div class="field">
                 <label for="apiKey">API Key（保存在本地）</label
@@ -14163,17 +14179,19 @@
                   style="display: none"
                 />
               </div>
-              <div class="notice small" style="margin-top: 12px">
-                兼容 OpenAI / DeepSeek 的 /chat/completions 接口。若配置缺失，AI
-                功能会给出明确错误。
-              </div>
+              <div class="notice small" style="margin-top: 12px">兼容 OpenAI / DeepSeek 的 /chat/completions 接口。若配置缺失，AI 功能会给出明确错误。</div>
             </div>
           </div>
         </section>
       </main>
     </div>
 
-    <div id="imageLightbox" role="dialog" aria-modal="true" aria-label="图片预览">
+    <div
+      id="imageLightbox"
+      role="dialog"
+      aria-modal="true"
+      aria-label="图片预览"
+    >
       <button id="lightboxClose" title="关闭">×</button>
       <img id="lightboxImg" alt="图片预览" />
     </div>
@@ -15684,22 +15702,36 @@
           $("exportMistakePdfBtn").style.display = "";
           $("exportMistakePdfBtn").textContent = "导出PDF";
         }
-        $("mistakeSelectModeBtn").textContent = mistakeSelectMode ? "取消选择" : "批量选择";
-        $("mistakeSelectModeBtn").className = mistakeSelectMode ? "btn danger" : "btn";
+        $("mistakeSelectModeBtn").textContent = mistakeSelectMode
+          ? "取消选择"
+          : "批量选择";
+        $("mistakeSelectModeBtn").className = mistakeSelectMode
+          ? "btn danger"
+          : "btn";
         $("addMistakeBtn").style.display = mistakeSelectMode ? "none" : "";
         renderMistakes();
       }
 
       function updateExportBtnLabel() {
         const n = mistakeSelectedIds.size;
-        $("exportMistakePdfBtn").textContent = n > 0 ? `导出PDF (${n}项)` : "导出PDF";
+        $("exportMistakePdfBtn").textContent =
+          n > 0 ? `导出PDF (${n}项)` : "导出PDF";
       }
 
       async function exportMistakesToPdf() {
         const ids = [...mistakeSelectedIds];
-        if (!ids.length) { alert("请先勾选要导出的错题。"); return; }
-        if (!window.jspdf) { alert("PDF 库尚未加载，请稍候重试。"); return; }
-        if (!window.html2canvas) { alert("html2canvas 库尚未加载，请稍候重试。"); return; }
+        if (!ids.length) {
+          alert("请先勾选要导出的错题。");
+          return;
+        }
+        if (!window.jspdf) {
+          alert("PDF 库尚未加载，请稍候重试。");
+          return;
+        }
+        if (!window.html2canvas) {
+          alert("html2canvas 库尚未加载，请稍候重试。");
+          return;
+        }
 
         const { jsPDF } = window.jspdf;
         const mistakes = ids
@@ -15739,19 +15771,37 @@
           let srcPxY = 0;
           while (srcPxY < canvas.height) {
             const ptAvail = pageH - margin - currentY;
-            if (ptAvail < 4) { pdf.addPage(); currentY = margin; continue; }
+            if (ptAvail < 4) {
+              pdf.addPage();
+              currentY = margin;
+              continue;
+            }
             const pxAvail = Math.floor(ptAvail / ptPerPx);
             const pxSlice = Math.min(canvas.height - srcPxY, pxAvail);
-            if (pxSlice <= 0) { pdf.addPage(); currentY = margin; continue; }
+            if (pxSlice <= 0) {
+              pdf.addPage();
+              currentY = margin;
+              continue;
+            }
             const sc = document.createElement("canvas");
             sc.width = canvas.width;
             sc.height = pxSlice;
             sc.getContext("2d").drawImage(canvas, 0, -srcPxY);
             const slicePtH = pxSlice * ptPerPx;
-            pdf.addImage(sc.toDataURL("image/jpeg", 0.92), "JPEG", margin, currentY, contentW, slicePtH);
+            pdf.addImage(
+              sc.toDataURL("image/jpeg", 0.92),
+              "JPEG",
+              margin,
+              currentY,
+              contentW,
+              slicePtH,
+            );
             srcPxY += pxSlice;
             currentY += slicePtH;
-            if (srcPxY < canvas.height) { pdf.addPage(); currentY = margin; }
+            if (srcPxY < canvas.height) {
+              pdf.addPage();
+              currentY = margin;
+            }
           }
         }
 
@@ -15780,11 +15830,16 @@
             // --- Text block (no images) ---
             const textDiv = document.createElement("div");
             textDiv.style.cssText = [
-              "position:fixed", "left:-9999px", "top:0",
+              "position:fixed",
+              "left:-9999px",
+              "top:0",
               `width:${Math.round(contentW)}px`,
-              "background:#ffffff", "padding:10px 14px",
+              "background:#ffffff",
+              "padding:10px 14px",
               "font-family:'Microsoft YaHei',PingFang SC,sans-serif",
-              "color:#1e293b", "font-size:13px", "line-height:1.65",
+              "color:#1e293b",
+              "font-size:13px",
+              "line-height:1.65",
               "box-sizing:border-box",
             ].join(";");
             textDiv.innerHTML = `
@@ -15797,9 +15852,13 @@
             await placeTextBlock(pdf, textDiv);
 
             // --- Images: each placed whole, never sliced ---
-            for (const src of (m.images || [])) {
+            for (const src of m.images || []) {
               let img;
-              try { img = await loadImg(src); } catch { continue; }
+              try {
+                img = await loadImg(src);
+              } catch {
+                continue;
+              }
 
               // Scale image to fit contentW, preserving aspect ratio
               const aspect = img.naturalHeight / img.naturalWidth;
@@ -15808,7 +15867,8 @@
 
               // If image is taller than a full page, scale it down to fit one page
               const maxImgH = pageH - margin * 2;
-              let drawW = imgPtW, drawH = imgPtH;
+              let drawW = imgPtW,
+                drawH = imgPtH;
               if (drawH > maxImgH) {
                 drawH = maxImgH;
                 drawW = drawH / aspect;
@@ -15820,7 +15880,13 @@
                 currentY = margin;
               }
 
-              pdf.addImage(src, margin + (contentW - drawW) / 2, currentY, drawW, drawH);
+              pdf.addImage(
+                src,
+                margin + (contentW - drawW) / 2,
+                currentY,
+                drawW,
+                drawH,
+              );
               currentY += drawH + 6;
             }
 
@@ -15856,7 +15922,7 @@
               `<div class="mistake-thumb" data-lightbox-src="${escapeHtml(src)}">
                 <img src="${escapeHtml(src)}" alt="图片${idx + 1}" loading="lazy" />
                 <button class="mistake-thumb-del" data-del-img-id="${escapeHtml(mistakeId)}" data-del-img-idx="${idx}" title="删除图片">×</button>
-              </div>`
+              </div>`,
           )
           .join("")}</div>`;
       }
@@ -15874,10 +15940,9 @@
           return;
         }
         container.innerHTML = mistakes
-          .map(
-            (m) => {
-              const isSelected = mistakeSelectedIds.has(m.id);
-              return `
+          .map((m) => {
+            const isSelected = mistakeSelectedIds.has(m.id);
+            return `
         <div class="item mistake-item${isSelected ? " mis-selected" : ""}">
           <div class="item-main" style="display:flex;align-items:flex-start;gap:0;">
             ${mistakeSelectMode ? `<input type="checkbox" class="mistake-select-cb" data-mistake-cb="${escapeHtml(m.id)}" ${isSelected ? "checked" : ""} />` : ""}
@@ -15888,14 +15953,17 @@
               ${renderMistakeImgStrip(m.images, m.id)}
             </div>
           </div>
-          ${mistakeSelectMode ? "" : `<div class="item-actions">
+          ${
+            mistakeSelectMode
+              ? ""
+              : `<div class="item-actions">
             <button class="btn small-btn" data-mistake-edit="${m.id}">编辑</button>
             <button class="btn danger small-btn" data-mistake-delete="${m.id}">删除</button>
-          </div>`}
+          </div>`
+          }
         </div>
       `;
-            }
-          )
+          })
           .join("");
       }
 
@@ -15922,7 +15990,7 @@
                 `<div class="modal-thumb">
                   <img src="${escapeHtml(src)}" alt="图片${idx + 1}" />
                   <button class="modal-thumb-del" data-modal-del-idx="${idx}" title="删除">×</button>
-                </div>`
+                </div>`,
             )
             .join("");
           grid.querySelectorAll("[data-modal-del-idx]").forEach((btn) => {
@@ -15933,7 +16001,9 @@
             });
           });
           grid.querySelectorAll(".modal-thumb img").forEach((img, idx) => {
-            img.addEventListener("click", () => openImageLightbox(modalImages[idx]));
+            img.addEventListener("click", () =>
+              openImageLightbox(modalImages[idx]),
+            );
           });
         }
 
@@ -16778,9 +16848,11 @@
       }
 
       function totalMinutesForRange(startDate, endDate) {
-        return app.state.sessions
-          .filter((s) => s.date >= startDate && s.date <= endDate)
-          .reduce((sum, s) => sum + sessionDurationSeconds(s), 0) / 60;
+        return (
+          app.state.sessions
+            .filter((s) => s.date >= startDate && s.date <= endDate)
+            .reduce((sum, s) => sum + sessionDurationSeconds(s), 0) / 60
+        );
       }
 
       function buildDataSummaryForRange(startDate, endDate) {
@@ -16875,7 +16947,9 @@
           });
           if (!reply.ok) {
             const text = await reply.text();
-            throw new Error(`测试失败：HTTP ${reply.status} ${text.slice(0, 120)}`);
+            throw new Error(
+              `测试失败：HTTP ${reply.status} ${text.slice(0, 120)}`,
+            );
           }
           if (reply.ok) {
             status.textContent = "测试成功。";
@@ -17045,7 +17119,10 @@
           renderPlans();
         });
         $("addMistakeBtn").addEventListener("click", () => openMistakeModal());
-        $("mistakeSelectModeBtn").addEventListener("click", toggleMistakeSelectMode);
+        $("mistakeSelectModeBtn").addEventListener(
+          "click",
+          toggleMistakeSelectMode,
+        );
         $("exportMistakePdfBtn").addEventListener("click", exportMistakesToPdf);
         $("lightboxClose").addEventListener("click", closeLightbox);
         $("imageLightbox").addEventListener("click", (e) => {
