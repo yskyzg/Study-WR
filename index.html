@@ -15718,7 +15718,6 @@
           const margin = 36;
           const contentW = pageW - margin * 2;
           let currentY = margin;
-          let isFirstItem = true;
 
           for (let i = 0; i < mistakes.length; i++) {
             const m = mistakes[i];
@@ -15770,29 +15769,69 @@
               document.body.removeChild(div);
             }
 
-            const aspect = canvas.height / canvas.width;
-            const imgH = contentW * aspect;
+            // pt per canvas-pixel
+            const ptPerPx = contentW / canvas.width;
 
-            if (!isFirstItem && currentY + imgH > pageH - margin) {
+            // If remaining space is too small to start this item, go to next page
+            if (i > 0 && pageH - margin - currentY < 60) {
               pdf.addPage();
               currentY = margin;
             }
 
-            const imgData = canvas.toDataURL("image/jpeg", 0.92);
-            pdf.addImage(imgData, "JPEG", margin, currentY, contentW, imgH);
-            currentY += imgH;
+            // Slice canvas across pages
+            let srcPxY = 0;
+            while (srcPxY < canvas.height) {
+              const ptAvail = pageH - margin - currentY;
+              if (ptAvail <= 0) {
+                pdf.addPage();
+                currentY = margin;
+                continue;
+              }
+              const pxAvail = Math.floor(ptAvail / ptPerPx);
+              const pxSlice = Math.min(canvas.height - srcPxY, pxAvail);
+              if (pxSlice <= 0) {
+                pdf.addPage();
+                currentY = margin;
+                continue;
+              }
 
+              const sliceCanvas = document.createElement("canvas");
+              sliceCanvas.width = canvas.width;
+              sliceCanvas.height = pxSlice;
+              sliceCanvas.getContext("2d").drawImage(canvas, 0, -srcPxY);
+
+              const slicePtH = pxSlice * ptPerPx;
+              pdf.addImage(
+                sliceCanvas.toDataURL("image/jpeg", 0.92),
+                "JPEG",
+                margin,
+                currentY,
+                contentW,
+                slicePtH
+              );
+
+              srcPxY += pxSlice;
+              currentY += slicePtH;
+
+              if (srcPxY < canvas.height) {
+                pdf.addPage();
+                currentY = margin;
+              }
+            }
+
+            // Separator between items
             if (i < mistakes.length - 1) {
               currentY += 8;
-              if (currentY + 4 < pageH - margin) {
+              if (pageH - margin - currentY >= 14) {
                 pdf.setDrawColor(200, 210, 220);
                 pdf.line(margin, currentY, pageW - margin, currentY);
                 pdf.setDrawColor(0, 0, 0);
                 currentY += 10;
+              } else {
+                pdf.addPage();
+                currentY = margin;
               }
             }
-
-            isFirstItem = false;
           }
 
           pdf.save(`错题记录_${todayISO()}.pdf`);
