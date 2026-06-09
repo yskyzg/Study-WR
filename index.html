@@ -13267,6 +13267,7 @@
       }
       .tab-chip {
         padding: 8px 12px;
+        white-space: nowrap;
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.56);
         color: #456078;
@@ -13633,23 +13634,18 @@
           <div class="grid grid-2" style="margin-top: 10px">
             <div class="card">
               <div
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 10px;
-                  margin-bottom: 6px;
-                  flex-wrap: wrap;
-                "
+                class="btn-row"
+                style="justify-content: space-between; margin-bottom: 6px; flex-wrap: nowrap; gap: 6px; align-items: center"
               >
-                <h3 style="margin: 0">学习趋势</h3>
-                <select id="dailySubjectFilter" style="min-width: 120px">
-                  <option value="all">全部科目</option>
-                </select>
-                <div style="display: flex; gap: 5px">
-                  <button class="tab-chip active" data-range="7">
-                    近 7 天
-                  </button>
-                  <button class="tab-chip" data-range="30">近 30 天</button>
+                <h3 style="margin: 0; white-space: nowrap">学习趋势</h3>
+                <div style="display: flex; gap: 6px; flex-shrink: 0; align-items: center">
+                  <select id="dailySubjectFilter" style="min-width: 100px">
+                    <option value="all">全部科目</option>
+                  </select>
+                  <div style="display: flex; gap: 5px">
+                    <button class="tab-chip active" data-range="7">近 7 天</button>
+                    <button class="tab-chip" data-range="30">近 30 天</button>
+                  </div>
                 </div>
               </div>
               <div class="chart-box"><canvas id="dailyChart"></canvas></div>
@@ -13668,32 +13664,35 @@
             <div class="card">
               <div
                 class="btn-row"
-                style="justify-content: space-between; margin-bottom: 6px"
+                style="justify-content: space-between; margin-bottom: 6px; flex-wrap: nowrap; gap: 6px; align-items: center"
               >
-                <h3 style="margin: 0">正确率对比</h3>
-                <select id="accuracyGranularity" style="min-width: 130px">
-                  <option value="subject">按科目</option>
-                  <option value="type">按题型</option>
-                </select>
+                <h3 style="margin: 0; white-space: nowrap">正确率对比</h3>
+                <div style="display: flex; gap: 6px; flex-shrink: 0">
+                  <select id="accuracySubjectFilter" style="min-width: 100px">
+                    <option value="all">全部科目</option>
+                  </select>
+                  <select id="accuracyTypeFilter" style="min-width: 100px">
+                    <option value="all">全部题型</option>
+                  </select>
+                </div>
               </div>
               <div class="chart-box"><canvas id="accuracyChart"></canvas></div>
             </div>
           </div>
           <div class="card" style="margin-top: 10px">
-            <h3 style="margin: 0 0 8px">错题新增趋势</h3>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap">
-              <select
-                id="mistakeTrendSubjectFilter"
-                style="min-width: 150px; flex: 1 1 150px"
-              >
-                <option value="all">全部科目</option>
-              </select>
-              <select
-                id="mistakeTrendTypeFilter"
-                style="min-width: 150px; flex: 1 1 150px"
-              >
-                <option value="all">全部题型</option>
-              </select>
+            <div
+              class="btn-row"
+              style="justify-content: space-between; margin-bottom: 6px; flex-wrap: nowrap; gap: 6px; align-items: center"
+            >
+              <h3 style="margin: 0; white-space: nowrap">错题新增趋势</h3>
+              <div style="display: flex; gap: 6px; flex-shrink: 0">
+                <select id="mistakeTrendSubjectFilter" style="min-width: 100px">
+                  <option value="all">全部科目</option>
+                </select>
+                <select id="mistakeTrendTypeFilter" style="min-width: 100px">
+                  <option value="all">全部题型</option>
+                </select>
+              </div>
             </div>
             <div class="small muted chart-empty" id="mistakeTrendEmpty">
               暂无符合条件的错题数据
@@ -14536,12 +14535,15 @@
         populateSubjectSelect($("mistakeTrendSubjectFilter"), {
           includeAll: true,
         });
+        populateSubjectSelect($("accuracySubjectFilter"), { includeAll: true });
         if (!$("mistakeFilterSubject").value)
           $("mistakeFilterSubject").value = "all";
         if (!$("dailySubjectFilter").value)
           $("dailySubjectFilter").value = "all";
         if (!$("mistakeTrendSubjectFilter").value)
           $("mistakeTrendSubjectFilter").value = "all";
+        if (!$("accuracySubjectFilter").value)
+          $("accuracySubjectFilter").value = "all";
         populateQuestionTypeSelect(
           $("mistakeFilterType"),
           $("mistakeFilterSubject").value,
@@ -14550,6 +14552,11 @@
         populateQuestionTypeSelect(
           $("mistakeTrendTypeFilter"),
           $("mistakeTrendSubjectFilter").value,
+          { includeAll: true },
+        );
+        populateQuestionTypeSelect(
+          $("accuracyTypeFilter"),
+          $("accuracySubjectFilter").value,
           { includeAll: true },
         );
       }
@@ -14796,51 +14803,53 @@
       }
 
       function getAccuracyData() {
-        const granularity = $("accuracyGranularity")?.value || "subject";
-        if (granularity === "subject") {
-          return app.state.subjects.map((subject) => {
+        const subjectFilter = $("accuracySubjectFilter")?.value || "all";
+        const typeFilter = $("accuracyTypeFilter")?.value || "all";
+        const subjects =
+          subjectFilter === "all"
+            ? app.state.subjects
+            : app.state.subjects.filter((s) => s.id === subjectFilter);
+
+        if (typeFilter === "all") {
+          if (subjectFilter === "all") {
+            return subjects.map((subject) => {
+              const mistakes = app.state.mistakes.filter(
+                (m) => m.subjectId === subject.id,
+              );
+              return {
+                label: subject.name,
+                total: mistakes.reduce((s, m) => s + (Number(m.totalQuestions) || 0), 0),
+                wrong: mistakes.reduce((s, m) => s + (Number(m.wrongQuestions) || 0), 0),
+                color: subject.color,
+              };
+            });
+          }
+          const subject = subjects[0];
+          return (subject?.types || []).map((type) => {
             const mistakes = app.state.mistakes.filter(
-              (m) => m.subjectId === subject.id,
-            );
-            const totalQ = mistakes.reduce(
-              (s, m) => s + (Number(m.totalQuestions) || 0),
-              0,
-            );
-            const wrongQ = mistakes.reduce(
-              (s, m) => s + (Number(m.wrongQuestions) || 0),
-              0,
+              (m) => m.subjectId === subject.id && m.questionType === type,
             );
             return {
-              label: subject.name,
-              total: totalQ,
-              wrong: wrongQ,
+              label: type,
+              total: mistakes.reduce((s, m) => s + (Number(m.totalQuestions) || 0), 0),
+              wrong: mistakes.reduce((s, m) => s + (Number(m.wrongQuestions) || 0), 0),
               color: subject.color,
             };
           });
         }
-        const rows = [];
-        app.state.subjects.forEach((subject) => {
-          (subject.types || []).forEach((type) => {
-            const mistakes = app.state.mistakes.filter(
-              (m) => m.subjectId === subject.id && m.questionType === type,
-            );
-            const totalQ = mistakes.reduce(
-              (s, m) => s + (Number(m.totalQuestions) || 0),
-              0,
-            );
-            const wrongQ = mistakes.reduce(
-              (s, m) => s + (Number(m.wrongQuestions) || 0),
-              0,
-            );
-            rows.push({
-              label: `${subject.name}-${type}`,
-              total: totalQ,
-              wrong: wrongQ,
-              color: subject.color,
-            });
-          });
-        });
-        return rows;
+        const subject = subjects[0];
+        if (!subject) return [];
+        const mistakes = app.state.mistakes.filter(
+          (m) => m.subjectId === subject.id && m.questionType === typeFilter,
+        );
+        return [
+          {
+            label: `${subject.name}-${typeFilter}`,
+            total: mistakes.reduce((s, m) => s + (Number(m.totalQuestions) || 0), 0),
+            wrong: mistakes.reduce((s, m) => s + (Number(m.wrongQuestions) || 0), 0),
+            color: subject.color,
+          },
+        ];
       }
 
       function getPomodoroCountSeries(days) {
@@ -17187,7 +17196,15 @@
           renderCharts();
         });
         $("mistakeTrendTypeFilter").addEventListener("change", renderCharts);
-        $("accuracyGranularity").addEventListener("change", renderCharts);
+        $("accuracySubjectFilter").addEventListener("change", () => {
+          populateQuestionTypeSelect(
+            $("accuracyTypeFilter"),
+            $("accuracySubjectFilter").value,
+            { includeAll: true },
+          );
+          renderCharts();
+        });
+        $("accuracyTypeFilter").addEventListener("change", renderCharts);
         $("saveReviewBtn").addEventListener("click", saveReview);
         $("aiReviewBtn").addEventListener("click", generateAiReview);
         $("copyAiReviewBtn").addEventListener("click", async () => {
