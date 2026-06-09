@@ -15644,6 +15644,7 @@
         if (app.reviewFormDirty) renderReviewSummaryForCurrentDate();
         else loadReviewIntoForm();
         renderReviewHistory();
+        renderReviewModeHint();
       }
 
       function reviewKey(date, type) {
@@ -16459,16 +16460,25 @@
         copyBtn.disabled = true;
         try {
           const date = $("reviewDate").value || todayISO();
-          const summary = buildDataSummary(date);
+          const mode = $("reviewType").value || "daily";
+          const summary =
+            mode === "weekly"
+              ? buildDataSummaryForRange(addDaysISO(date, -6), date)
+              : buildDataSummary(date);
           const content = await callAi([
             {
               role: "system",
               content:
-                "你是公务员考试备考教练。请基于数据输出纯中文纯文本复盘建议，使用分点结构，不要使用 Markdown、不要使用标题符号 #、不要使用星号、不要使用粗体。层级请按‘一、二、三……’、‘（一）（二）（三）……’、‘1、2、3……’、‘(1)(2)(3)……’ 这几种形式之一组织。",
+                mode === "weekly"
+                  ? "你是公务员考试备考教练。请基于最近 7 天数据输出纯中文纯文本周复盘建议，使用分点结构，不要使用 Markdown、不要使用标题符号 #、不要使用星号、不要使用粗体。层级请按’一、二、三……’、’（一）（二）（三）……’、’1、2、3……’、’(1)(2)(3)……’ 这几种形式之一组织。"
+                  : "你是公务员考试备考教练。请基于数据输出纯中文纯文本复盘建议，使用分点结构，不要使用 Markdown、不要使用标题符号 #、不要使用星号、不要使用粗体。层级请按’一、二、三……’、’（一）（二）（三）……’、’1、2、3……’、’(1)(2)(3)……’ 这几种形式之一组织。",
             },
             {
               role: "user",
-              content: `请根据以下备考数据生成复盘，结构包括：完成情况、问题诊断、改进措施、明日重点。数据：${JSON.stringify(summary, null, 2)}`,
+              content:
+                mode === "weekly"
+                  ? `请根据以下最近 7 天备考数据生成周复盘，结构包括：本周完成情况、本周主要问题、下周改进重点、需要关注的科目 / 错题。数据：${JSON.stringify(summary, null, 2)}`
+                  : `请根据以下备考数据生成复盘，结构包括：完成情况、问题诊断、改进措施、明日重点。数据：${JSON.stringify(summary, null, 2)}`,
             },
           ]);
           const plainText = formatReviewPlainText(content);
@@ -16483,6 +16493,14 @@
           copyBtn.disabled = !message.trim();
           $("clearAiReviewBtn").disabled = !message.trim();
         }
+      }
+
+      function renderReviewModeHint() {
+        const mode = $("reviewType") ? $("reviewType").value : "daily";
+        $("reviewModeHint").textContent =
+          mode === "weekly"
+            ? "每周模式会按所选日期往前回溯 7 天。"
+            : "每日模式只复盘所选日期当天的数据。";
       }
 
       async function generateDashboardReminder() {
@@ -16658,6 +16676,7 @@
         $("reviewType").addEventListener("change", () => {
           app.reviewFormDirty = true;
           loadReviewIntoForm();
+          renderReviewModeHint();
         });
         [
           "reviewDone",
