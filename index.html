@@ -14073,6 +14073,12 @@
         return d.toISOString().slice(0, 10);
       }
 
+      function addDaysISO(isoDate, deltaDays) {
+        const date = new Date(`${isoDate}T00:00:00`);
+        date.setDate(date.getDate() + deltaDays);
+        return toISODate(date);
+      }
+
       function dateOffsetISO(offset) {
         return toISODate(new Date(Date.now() + offset * DAY));
       }
@@ -16328,6 +16334,48 @@
         return {
           date,
           totalStudyMinutes: totalMinutesForDate(date),
+          plans,
+          sessions,
+          mistakes,
+        };
+      }
+
+      function totalMinutesForRange(startDate, endDate) {
+        return app.state.sessions
+          .filter((s) => s.date >= startDate && s.date <= endDate)
+          .reduce((sum, s) => sum + sessionDurationSeconds(s), 0) / 60;
+      }
+
+      function buildDataSummaryForRange(startDate, endDate) {
+        const plans = app.state.plans
+          .filter((p) => p.dueDate >= startDate && p.dueDate <= endDate)
+          .map((p) => ({
+            title: p.title,
+            subject: subjectName(p.subjectId),
+            estimatedPomodoros: p.estimatedPomodoros,
+            completed: p.completed,
+            dueDate: p.dueDate,
+          }));
+        const sessions = app.state.sessions
+          .filter((s) => s.date >= startDate && s.date <= endDate)
+          .map((s) => ({
+            subject: subjectName(s.subjectId),
+            duration: formatDuration(sessionDurationSeconds(s)),
+            date: s.date,
+          }));
+        const mistakes = app.state.mistakes
+          .filter((m) => m.date >= startDate && m.date <= endDate)
+          .map((m) => ({
+            subject: subjectName(m.subjectId),
+            questionType: m.questionType || "",
+            summary: m.summary,
+            reason: m.reason,
+            tags: m.tags,
+            date: m.date,
+          }));
+        return {
+          dateRange: { startDate, endDate },
+          totalStudyMinutes: totalMinutesForRange(startDate, endDate),
           plans,
           sessions,
           mistakes,
