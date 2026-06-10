@@ -13432,7 +13432,7 @@
         color: #a44151;
       }
       .ai-chat-img { max-width: 200px; max-height: 180px; border-radius: 10px; margin-top: 6px; display: block; }
-      .ai-md { line-height: 1.7; }
+      .ai-md { line-height: 1.7; white-space: normal; }
       .ai-md p { margin: 0 0 8px; }
       .ai-md p:last-child { margin-bottom: 0; }
       .ai-md p:empty { display: none; }
@@ -17385,7 +17385,7 @@
 
       function renderMarkdown(text) {
         if (typeof marked === "undefined") return text.replace(/</g, "&lt;");
-        return marked.parse(text).replace(/(<p>\s*<\/p>\s*)+$/g, "");
+        return marked.parse(text).replace(/(<p>(\s|<br\s*\/?>)*<\/p>\s*)+/g, "").trim();
       }
 
       function loadAiChatPrompts() {
