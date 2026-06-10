@@ -15183,6 +15183,50 @@
       <img id="lightboxImg" alt="图片预览" />
     </div>
 
+    <div class="modal" id="exportModal" role="dialog" aria-modal="true">
+      <div class="modal-panel" style="max-width:400px">
+        <div class="modal-head">
+          <h3>导出数据备份</h3>
+          <button class="btn" id="exportModalCloseBtn">关闭</button>
+        </div>
+        <div style="margin:16px 0">
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer">
+            <input type="checkbox" id="exportMain" checked />
+            主数据（学习记录、计划、错题、复盘、设置）
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer">
+            <input type="checkbox" id="exportAiChat" checked />
+            AI 聊天记录
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer">
+            <input type="checkbox" id="exportAiReminder" checked />
+            AI 仪表盘提醒
+          </label>
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="exportModalCancelBtn">取消</button>
+          <button class="btn primary" id="exportConfirmBtn">确认导出</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="importModal" role="dialog" aria-modal="true">
+      <div class="modal-panel" style="max-width:400px">
+        <div class="modal-head">
+          <h3>导入数据恢复</h3>
+          <button class="btn" id="importModalCloseBtn">关闭</button>
+        </div>
+        <div id="importModalBody" style="margin:16px 0"></div>
+        <div class="notice small" style="margin:8px 0 16px">
+          ⚠ 勾选的内容将覆盖当前对应数据
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="importModalCancelBtn">取消</button>
+          <button class="btn primary" id="importConfirmBtn">确认导入</button>
+        </div>
+      </div>
+    </div>
+
     <div class="modal" id="editModal" role="dialog" aria-modal="true">
       <div class="modal-panel">
         <div class="modal-head">
@@ -19280,6 +19324,9 @@
           app.timer.running = false;
           app.timer.intervalId = null;
           localStorage.removeItem(APP_KEY);
+          localStorage.removeItem("aiDashboardReminder");
+          localStorage.removeItem(AI_CHAT_SESSIONS_KEY);
+          localStorage.removeItem(AI_CHAT_PROMPTS_KEY);
           app.state = defaultState();
           app.reviewFormDirty = false;
           app.settingsFormDirty = false;
@@ -19289,6 +19336,11 @@
           app.timer.total = app.state.settings.focusMinutes * 60;
           app.timer.remaining = app.timer.total;
           app.timer.selectedSubjectId = "";
+          aiSessions = [];
+          aiCurrentSessionId = null;
+          aiChatHistory = [];
+          aiChatSummary = "";
+          createNewSession();
           saveState();
           renderAll();
           alert("全部本地数据已重置。");
