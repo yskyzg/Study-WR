@@ -13447,7 +13447,6 @@
       }
 
       .ai-result {
-        white-space: pre-wrap;
         line-height: 1.7;
       }
 
@@ -13458,6 +13457,7 @@
         box-shadow: 0 10px 24px rgba(89, 102, 170, 0.1);
         cursor: pointer;
         overflow: hidden;
+        white-space: normal;
       }
 
       .ai-reminder-head {
@@ -13479,6 +13479,7 @@
       .ai-reminder-body {
         padding: 0 14px 14px;
         color: var(--text);
+        white-space: pre-wrap;
       }
 
       .ai-reminder-card[aria-expanded="false"] .ai-reminder-arrow {
@@ -14312,12 +14313,12 @@
             <div
               class="notice preserve-lines"
               id="smartReminder"
-              style="min-height: 72px; display: flex; align-items: center"
+              style="display: flex; align-items: center"
             ></div>
             <div
               class="ai-result"
               id="dashboardAiResult"
-              style="margin-top: 12px"
+              style="margin-top: 6px"
             ></div>
           </div>
 
@@ -15055,13 +15056,14 @@
             </div>
             <h4 style="margin: 16px 0 6px">前置提示词</h4>
             <div class="small muted" style="margin-bottom: 8px">
-              用于个性化 AI 智能提醒与复盘生成。描述你的学习方向，AI 会据此给出更贴切的建议。例如：「我正在备考计算机考研专业课，重点是数据结构和操作系统」「我在自学前端开发，目标是秋招岗位」。留空则使用通用提示。
+              用于个性化 AI 智能提醒与复盘生成。描述你的学习方向，AI
+              会据此给出更贴切的建议。例如：「我正在备考计算机考研专业课，重点是数据结构和操作系统」「我在自学前端开发，目标是秋招岗位」。留空则使用通用提示。
             </div>
             <textarea
               id="globalPromptInput"
               rows="3"
               placeholder="例如：我正在备考计算机考研专业课，重点是数据结构和操作系统。"
-              style="width:100%;resize:vertical;min-height:60px"
+              style="width: 100%; resize: vertical; min-height: 60px"
             ></textarea>
           </div>
           <div class="grid grid-2">
@@ -15710,14 +15712,20 @@
 
         const ltpAll = app.state.longTermPlans || [];
         if (!ltpAll.filter((p) => !p.completed).length) {
-          lines.push('尚未设置长期学习计划，建议在"计划"页规划阶段目标和科目排期。');
+          lines.push(
+            '尚未设置长期学习计划，建议在"计划"页规划阶段目标和科目排期。',
+          );
         } else {
           const warnEnd = dateOffsetISO(2);
           ltpAll
-            .filter((p) => !p.completed && p.endDate >= today && p.endDate <= warnEnd)
+            .filter(
+              (p) => !p.completed && p.endDate >= today && p.endDate <= warnEnd,
+            )
             .forEach((p) => {
               const days = Math.round(
-                (new Date(`${p.endDate}T00:00:00`) - new Date(`${today}T00:00:00`)) / DAY,
+                (new Date(`${p.endDate}T00:00:00`) -
+                  new Date(`${today}T00:00:00`)) /
+                  DAY,
               );
               lines.push(
                 `长期计划「${p.title}」将于 ${p.endDate} 到期（还有 ${days} 天），请注意收尾。`,
@@ -15725,10 +15733,15 @@
             });
           ltpAll.forEach((stage) => {
             (stage.subjectPlans || [])
-              .filter((sp) => !sp.completed && sp.endDate >= today && sp.endDate <= warnEnd)
+              .filter(
+                (sp) =>
+                  !sp.completed && sp.endDate >= today && sp.endDate <= warnEnd,
+              )
               .forEach((sp) => {
                 const days = Math.round(
-                  (new Date(`${sp.endDate}T00:00:00`) - new Date(`${today}T00:00:00`)) / DAY,
+                  (new Date(`${sp.endDate}T00:00:00`) -
+                    new Date(`${today}T00:00:00`)) /
+                    DAY,
                 );
                 lines.push(
                   `「${stage.title}」中${subjectName(sp.subjectId)}排期将于 ${sp.endDate} 到期（还有 ${days} 天）。`,
@@ -16761,7 +16774,9 @@
 
       function renderLtpCard(ltp) {
         const expanded = app._expandedLtpIds.has(ltp.id);
-        const pct = ltp.completed ? 100 : ltpProgress(ltp.startDate, ltp.endDate);
+        const pct = ltp.completed
+          ? 100
+          : ltpProgress(ltp.startDate, ltp.endDate);
         const noteHtml = ltp.note
           ? `<div class="ltp-note">${escapeHtml(ltp.note)}</div>`
           : "";
@@ -16771,7 +16786,9 @@
                <div class="ltp-progress-bar" style="margin-bottom:8px;"><div class="ltp-progress-fill" style="width:${pct}%;"></div></div>
                ${
                  (ltp.subjectPlans || []).length
-                   ? (ltp.subjectPlans || []).map((sp) => renderLtpSpItem(sp, ltp.id)).join("")
+                   ? (ltp.subjectPlans || [])
+                       .map((sp) => renderLtpSpItem(sp, ltp.id))
+                       .join("")
                    : '<div class="muted small">暂无科目排期</div>'
                }
                <div style="margin-top:8px;">
@@ -16805,23 +16822,36 @@
         const done = all.filter((p) => p.completed);
         let html = "";
         if (!active.length && !done.length) {
-          html = '<div class="muted small">暂无长期计划，点击“新增阶段”开始规划。</div>';
+          html =
+            '<div class="muted small">暂无长期计划，点击“新增阶段”开始规划。</div>';
         } else {
-          active.forEach((ltp) => { html += renderLtpCard(ltp); });
+          active.forEach((ltp) => {
+            html += renderLtpCard(ltp);
+          });
           if (done.length) {
             const exp = app._ltpCompletedExpanded;
             html += `<div class="ltp-completed-section-head" data-ltp-completed-toggle="1">
               ${exp ? "▲" : "▼"} 已完成（${done.length}）
             </div>`;
-            if (exp) done.forEach((ltp) => { html += renderLtpCard(ltp); });
+            if (exp)
+              done.forEach((ltp) => {
+                html += renderLtpCard(ltp);
+              });
           }
         }
         container.innerHTML = html;
       }
 
       function openLongTermPlanModal(ltpId = "") {
-        const ltp = (app.state.longTermPlans || []).find((p) => p.id === ltpId) || {
-          title: "", startDate: todayISO(), endDate: todayISO(), note: "", completed: false, subjectPlans: [],
+        const ltp = (app.state.longTermPlans || []).find(
+          (p) => p.id === ltpId,
+        ) || {
+          title: "",
+          startDate: todayISO(),
+          endDate: todayISO(),
+          note: "",
+          completed: false,
+          subjectPlans: [],
         };
         openModal(
           ltpId ? "编辑阶段计划" : "新增阶段计划",
@@ -16836,7 +16866,10 @@
         );
         $("saveLtpModalBtn").onclick = () => {
           const title = $("ltpTitleInput").value.trim();
-          if (!title) { alert("请输入阶段名称。"); return; }
+          if (!title) {
+            alert("请输入阶段名称。");
+            return;
+          }
           const payload = {
             title,
             startDate: $("ltpStartInput").value || todayISO(),
@@ -16845,11 +16878,17 @@
             completed: $("ltpCompletedInput").checked,
           };
           if (ltpId) {
-            const existing = (app.state.longTermPlans || []).find((p) => p.id === ltpId);
+            const existing = (app.state.longTermPlans || []).find(
+              (p) => p.id === ltpId,
+            );
             if (existing) Object.assign(existing, payload);
           } else {
             if (!app.state.longTermPlans) app.state.longTermPlans = [];
-            app.state.longTermPlans.push({ id: uid("ltp"), subjectPlans: [], ...payload });
+            app.state.longTermPlans.push({
+              id: uid("ltp"),
+              subjectPlans: [],
+              ...payload,
+            });
           }
           saveState();
           closeModal();
@@ -16861,7 +16900,11 @@
         const ltp = (app.state.longTermPlans || []).find((p) => p.id === ltpId);
         if (!ltp) return;
         const sp = (ltp.subjectPlans || []).find((s) => s.id === spId) || {
-          subjectId: "", startDate: ltp.startDate, endDate: ltp.endDate, note: "", completed: false,
+          subjectId: "",
+          startDate: ltp.startDate,
+          endDate: ltp.endDate,
+          note: "",
+          completed: false,
         };
         openModal(
           spId ? "编辑科目排期" : "添加科目排期",
@@ -17755,8 +17798,7 @@
           app.state.settings.dailyGoalMinutes || 120;
         $("weeklyGoalMinutes").value =
           app.state.settings.weeklyGoalMinutes || 600;
-        $("globalPromptInput").value =
-          app.state.settings.prePrompt || "";
+        $("globalPromptInput").value = app.state.settings.prePrompt || "";
         renderApiPresets();
         renderSubjectList();
       }
@@ -18082,7 +18124,9 @@
           })),
         }));
         const expiringLtp = ltpAll
-          .filter((p) => !p.completed && p.endDate >= today && p.endDate <= warnEnd)
+          .filter(
+            (p) => !p.completed && p.endDate >= today && p.endDate <= warnEnd,
+          )
           .map((p) => ({ title: p.title, endDate: p.endDate }));
         return {
           date,
@@ -18240,7 +18284,9 @@
                   tomorrow: "明日重点",
                 };
 
-          const personalizedPrompt = (app.state.settings.prePrompt || "").trim();
+          const personalizedPrompt = (
+            app.state.settings.prePrompt || ""
+          ).trim();
           const coachingContext = personalizedPrompt
             ? `用户的学习方向：${personalizedPrompt}。`
             : "";
@@ -18311,9 +18357,7 @@
         const context = prePrompt
           ? `用户的学习方向是：${prePrompt}。请围绕这个方向给出提醒。`
           : "";
-        return (
-          `你是学习提醒助手。${context}输出 3-5 条冷静、具体、可执行的提醒。请用纯文本分点输出，不要使用 Markdown，不要使用星号、井号、下划线、反引号。每条建议前用 1、2、3、4、5 编号。如果用户没有设置长期计划（hasLongTermPlan 为 false），请提醒他规划阶段性学习目标；如果有即将到期的长期计划（expiringLtp 不为空），请明确提醒到期时间并给出收尾建议。`
-        );
+        return `你是学习提醒助手。${context}输出 3-5 条冷静、具体、可执行的提醒。请用纯文本分点输出，不要使用 Markdown，不要使用星号、井号、下划线、反引号。每条建议前用 1、2、3、4、5 编号。如果用户没有设置长期计划（hasLongTermPlan 为 false），请提醒他规划阶段性学习目标；如果有即将到期的长期计划（expiringLtp 不为空），请明确提醒到期时间并给出收尾建议。`;
       }
 
       function renderReviewModeHint() {
@@ -18356,8 +18400,7 @@
           const content = await callAi([
             {
               role: "system",
-              content:
-                buildSmartReminderSystemPrompt(),
+              content: buildSmartReminderSystemPrompt(),
             },
             {
               role: "user",
@@ -19043,7 +19086,9 @@
           renderTimer();
         });
         $("addPlanBtn").addEventListener("click", () => openPlanModal());
-        $("addLongTermPlanBtn").addEventListener("click", () => openLongTermPlanModal());
+        $("addLongTermPlanBtn").addEventListener("click", () =>
+          openLongTermPlanModal(),
+        );
         $("calendarPrevBtn").addEventListener("click", () => {
           app.planCalendarMonth = shiftMonth(app.planCalendarMonth, -1);
           renderPlans();
@@ -19433,7 +19478,9 @@
           const addSp = event.target.closest("[data-add-sp]");
           const spEdit = event.target.closest("[data-sp-edit]");
           const spDelete = event.target.closest("[data-sp-delete]");
-          const ltpCompletedToggle = event.target.closest("[data-ltp-completed-toggle]");
+          const ltpCompletedToggle = event.target.closest(
+            "[data-ltp-completed-toggle]",
+          );
           if (ltpExpand) {
             const id = ltpExpand.dataset.ltpExpand;
             if (app._expandedLtpIds.has(id)) app._expandedLtpIds.delete(id);
@@ -19449,7 +19496,8 @@
             renderLongTermPlans();
           }
           if (addSp) openSubjectPlanModal(addSp.dataset.addSp);
-          if (spEdit) openSubjectPlanModal(spEdit.dataset.ltpId, spEdit.dataset.spEdit);
+          if (spEdit)
+            openSubjectPlanModal(spEdit.dataset.ltpId, spEdit.dataset.spEdit);
           if (spDelete && confirm("确定删除该科目排期吗？")) {
             const ltp = (app.state.longTermPlans || []).find(
               (p) => p.id === spDelete.dataset.ltpId,
