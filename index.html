@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>备考智能工具</title>
+    <title>番茄学习助手</title>
     <script>
       /*!
        * Chart.js v4.5.1
@@ -13434,7 +13434,16 @@
         border-radius: 14px;
         padding: 12px;
         color: #41546c;
-        white-space: pre-wrap;
+        white-space: normal;
+        line-height: 1.6;
+      }
+
+      .notice.small {
+        padding: 10px 12px;
+      }
+
+      .notice.preserve-lines {
+        white-space: pre-line;
       }
 
       .ai-result {
@@ -14108,7 +14117,7 @@
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand">
-          <h1>备考智能工具</h1>
+          <h1>番茄学习助手</h1>
           <p>冷静复盘 · 专注推进 · 数据留痕</p>
         </div>
         <nav class="nav" id="sidebarNav">
@@ -14259,7 +14268,7 @@
               </button>
             </div>
             <div
-              class="notice"
+              class="notice preserve-lines"
               id="smartReminder"
               style="min-height: 72px; display: flex; align-items: center"
             ></div>
@@ -14565,7 +14574,7 @@
                 id="reviewModeHint"
                 style="margin-top: 6px"
               ></div>
-              <div class="notice small" id="reviewSummary"></div>
+              <div class="notice small preserve-lines" id="reviewSummary"></div>
               <div class="field" style="margin-top: 12px">
                 <label for="reviewDone">今日完成情况</label
                 ><textarea id="reviewDone"></textarea>
@@ -15002,6 +15011,16 @@
                 保存学习目标
               </button>
             </div>
+            <h4 style="margin: 16px 0 6px">前置提示词</h4>
+            <div class="small muted" style="margin-bottom: 8px">
+              用于个性化 AI 智能提醒与复盘生成。描述你的学习方向，AI 会据此给出更贴切的建议。例如：「我正在备考计算机考研专业课，重点是数据结构和操作系统」「我在自学前端开发，目标是秋招岗位」。留空则使用通用提示。
+            </div>
+            <textarea
+              id="globalPromptInput"
+              rows="3"
+              placeholder="例如：我正在备考计算机考研专业课，重点是数据结构和操作系统。"
+              style="width:100%;resize:vertical;min-height:60px"
+            ></textarea>
           </div>
           <div class="grid grid-2">
             <div class="card">
@@ -15330,6 +15349,7 @@
             baseUrl: "",
             model: "",
             apiPresets: [],
+            prePrompt: "",
           },
         };
       }
@@ -15556,11 +15576,11 @@
         const titles = {
           dashboard: ["仪表盘", "今日进度、学习趋势与智能提醒"],
           pomodoro: ["番茄钟", "按科目记录专注时间"],
-          plans: ["计划", "管理每日与每周备考任务"],
+          plans: ["计划", "管理每日与每周学习任务"],
           mistakes: ["错题", "沉淀错因、答案与标签"],
           reviews: ["复盘", "每日 / 每周模板化复盘"],
           ai: ["AI 解答", "内置 AI 聊天与外部 AI 工具直达"],
-          settings: ["设置", "科目、番茄钟与 AI 接口配置"],
+          settings: ["设置", "科目、AI 提示词与番茄钟配置"],
         };
         $("pageTitle").textContent = titles[section][0];
         $("pageSubtitle").textContent = titles[section][1];
@@ -15633,7 +15653,7 @@
             `今天还有 ${pending.length} 项计划未完成：${pending
               .slice(0, 3)
               .map((p) => p.title)
-              .join("、")}。优先处理临近考试高频模块。`,
+              .join("、")}。优先处理学习薄弱环节，保持学习节奏。`,
           );
         if (plans.length && !pending.length)
           lines.push("今日计划已全部完成。可以用 10 分钟复盘错题，巩固收益。");
@@ -15649,7 +15669,7 @@
 
         const ltpAll = app.state.longTermPlans || [];
         if (!ltpAll.filter((p) => !p.completed).length) {
-          lines.push('尚未设置长期备考计划，建议在"计划"页规划阶段目标和科目排期。');
+          lines.push('尚未设置长期学习计划，建议在"计划"页规划阶段目标和科目排期。');
         } else {
           const warnEnd = dateOffsetISO(2);
           ltpAll
@@ -17694,6 +17714,8 @@
           app.state.settings.dailyGoalMinutes || 120;
         $("weeklyGoalMinutes").value =
           app.state.settings.weeklyGoalMinutes || 600;
+        $("globalPromptInput").value =
+          app.state.settings.prePrompt || "";
         renderApiPresets();
         renderSubjectList();
       }
@@ -17928,7 +17950,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `备考数据备份_${todayISO()}.json`;
+        a.download = `学习数据备份_${todayISO()}.json`;
         a.click();
         URL.revokeObjectURL(url);
       }
@@ -18177,14 +18199,18 @@
                   tomorrow: "明日重点",
                 };
 
+          const personalizedPrompt = (app.state.settings.prePrompt || "").trim();
+          const coachingContext = personalizedPrompt
+            ? `用户的学习方向：${personalizedPrompt}。`
+            : "";
           const systemPrompt =
-            `你是公务员考试备考教练。请基于数据生成复盘，只输出 JSON，不要输出其他内容。` +
+            `你是学习复盘教练。${coachingContext}请基于数据生成复盘，只输出 JSON，不要输出其他内容。` +
             `JSON 格式：{"done":"${fieldLabels.done}内容","problems":"${fieldLabels.problems}内容","actions":"${fieldLabels.actions}内容","tomorrow":"${fieldLabels.tomorrow}内容"}。` +
             `每个字段值为纯文本，可以换行，不要使用 Markdown、不要使用星号。`;
           const userPrompt =
             mode === "weekly"
-              ? `请根据以下最近 7 天备考数据生成周复盘。数据：${JSON.stringify(summary, null, 2)}`
-              : `请根据以下备考数据生成每日复盘。数据：${JSON.stringify(summary, null, 2)}`;
+              ? `请根据以下最近 7 天学习数据生成周复盘。数据：${JSON.stringify(summary, null, 2)}`
+              : `请根据以下学习数据生成每日复盘。数据：${JSON.stringify(summary, null, 2)}`;
 
           const content = await callAi([
             { role: "system", content: systemPrompt },
@@ -18239,6 +18265,16 @@
         }
       }
 
+      function buildSmartReminderSystemPrompt() {
+        const prePrompt = (app.state.settings.prePrompt || "").trim();
+        const context = prePrompt
+          ? `用户的学习方向是：${prePrompt}。请围绕这个方向给出提醒。`
+          : "";
+        return (
+          `你是学习提醒助手。${context}输出 3-5 条冷静、具体、可执行的提醒。请用纯文本分点输出，不要使用 Markdown，不要使用星号、井号、下划线、反引号。每条建议前用 1、2、3、4、5 编号。如果用户没有设置长期计划（hasLongTermPlan 为 false），请提醒他规划阶段性学习目标；如果有即将到期的长期计划（expiringLtp 不为空），请明确提醒到期时间并给出收尾建议。`
+        );
+      }
+
       function renderReviewModeHint() {
         const hintEl = $("reviewModeHint");
         if (!hintEl) return;
@@ -18258,7 +18294,7 @@
             {
               role: "system",
               content:
-                "你是公务员考试备考提醒助手。输出 3-5 条冷静、具体、可执行的提醒。请用纯文本分点输出，不要使用 Markdown，不要使用星号、井号、下划线、反引号。每条建议前用 1、2、3、4、5 编号。如果用户没有设置长期计划（hasLongTermPlan 为 false），请提醒他规划阶段性备考目标；如果有即将到期的长期计划（expiringLtp 不为空），请明确提醒到期时间并给出收尾建议。",
+                buildSmartReminderSystemPrompt(),
             },
             {
               role: "user",
@@ -19151,6 +19187,7 @@
             10080,
             600,
           );
+          app.state.settings.prePrompt = $("globalPromptInput").value.trim();
           saveState();
           renderAll();
           alert("学习目标已保存。");
