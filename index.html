@@ -15189,18 +15189,18 @@
           <h3>导出数据备份</h3>
           <button class="btn" id="exportModalCloseBtn">关闭</button>
         </div>
-        <div style="margin:16px 0">
-          <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer">
-            <input type="checkbox" id="exportMain" checked />
-            主数据（学习记录、计划、错题、复盘、设置）
+        <div style="margin:16px 0;display:flex;flex-direction:column;gap:6px">
+          <label style="display:grid;grid-template-columns:18px 1fr;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.25);cursor:pointer">
+            <input type="checkbox" id="exportMain" checked style="width:16px;height:16px;cursor:pointer;margin:0" />
+            <span>主数据（学习记录、计划、错题、复盘、设置）</span>
           </label>
-          <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer">
-            <input type="checkbox" id="exportAiChat" checked />
-            AI 聊天记录
+          <label style="display:grid;grid-template-columns:18px 1fr;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.25);cursor:pointer">
+            <input type="checkbox" id="exportAiChat" checked style="width:16px;height:16px;cursor:pointer;margin:0" />
+            <span>AI 聊天记录</span>
           </label>
-          <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer">
-            <input type="checkbox" id="exportAiReminder" checked />
-            AI 仪表盘提醒
+          <label style="display:grid;grid-template-columns:18px 1fr;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.25);cursor:pointer">
+            <input type="checkbox" id="exportAiReminder" checked style="width:16px;height:16px;cursor:pointer;margin:0" />
+            <span>AI 仪表盘提醒</span>
           </label>
         </div>
         <div class="btn-row">
@@ -15216,7 +15216,7 @@
           <h3>导入数据恢复</h3>
           <button class="btn" id="importModalCloseBtn">关闭</button>
         </div>
-        <div id="importModalBody" style="margin:16px 0"></div>
+        <div id="importModalBody" style="margin:16px 0;display:flex;flex-direction:column;gap:6px"></div>
         <div class="notice small" style="margin:8px 0 16px">
           ⚠ 勾选的内容将覆盖当前对应数据
         </div>
@@ -18138,9 +18138,9 @@
           typeof parsed.aiReminder === "string" && parsed.aiReminder !== "";
 
         const row = (id, label, has) =>
-          `<label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:${has ? "pointer" : "default"};${has ? "" : "opacity:0.4;pointer-events:none"}">` +
-          `<input type="checkbox" id="${id}" ${has ? "checked" : "disabled"} />` +
-          `${label}${has ? "" : "（备份中不含此项）"}` +
+          `<label style="display:grid;grid-template-columns:18px 1fr;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.25);cursor:${has ? "pointer" : "default"};${has ? "" : "opacity:0.4;pointer-events:none"}">` +
+          `<input type="checkbox" id="${id}" ${has ? "checked" : "disabled"} style="width:16px;height:16px;cursor:${has ? "pointer" : "default"};margin:0" />` +
+          `<span>${label}${has ? "" : "（备份中不含此项）"}</span>` +
           `</label>`;
 
         $("importModalBody").innerHTML =
