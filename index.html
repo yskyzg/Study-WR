@@ -13479,6 +13479,60 @@
       .ai-ctx-msg-role { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; opacity: .65; }
       .ai-ctx-summary-badge { display:inline-block; font-size:11px; padding:1px 7px; border-radius:20px; background:rgba(16,185,129,.15); color:#065f46; border:1px solid rgba(16,185,129,.3); margin-bottom:6px; }
       .ai-md blockquote { border-left: 3px solid rgba(79,143,216,.5); padding-left: 10px; margin: 6px 0; color: var(--muted); }
+      /* 多会话布局 */
+      .ai-chat-layout { display:flex; gap:0; align-items:flex-start; }
+      .ai-sessions-panel {
+        width: 188px; flex-shrink: 0;
+        display: flex; flex-direction: column; gap: 4px;
+        border-right: 1px solid rgba(148,163,184,.2);
+        padding-right: 10px; margin-right: 12px;
+        max-height: calc(65vh + 44px); overflow-y: auto;
+        transition: width .2s, opacity .2s, padding .2s, margin .2s;
+      }
+      .ai-sessions-panel.collapsed {
+        width: 0; opacity: 0; overflow: hidden;
+        padding-right: 0; margin-right: 0; border-right: none;
+      }
+      .ai-sessions-new-btn {
+        width: 100%; text-align: left; background: rgba(99,153,218,.1);
+        border: 1px dashed rgba(99,153,218,.4); border-radius: 10px;
+        padding: 6px 10px; font-size: 13px; color: var(--primary);
+        cursor: pointer; flex-shrink: 0;
+      }
+      .ai-sessions-new-btn:hover { background: rgba(99,153,218,.2); }
+      .ai-session-item {
+        cursor: pointer; padding: 7px 8px; border-radius: 10px;
+        display: flex; align-items: flex-start; gap: 4px;
+        border: 1px solid transparent; flex-shrink: 0;
+      }
+      .ai-session-item:hover { background: rgba(99,153,218,.1); }
+      .ai-session-item.active { background: rgba(99,153,218,.15); border-color: rgba(99,153,218,.35); }
+      .ai-session-info { flex: 1; min-width: 0; }
+      .ai-session-title { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .ai-session-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+      .ai-session-del {
+        background: none; border: none; cursor: pointer; color: var(--muted);
+        font-size: 14px; line-height: 1; padding: 1px 3px; border-radius: 4px; flex-shrink: 0;
+        opacity: 0;
+      }
+      .ai-session-item:hover .ai-session-del { opacity: 1; }
+      .ai-session-del:hover { background: rgba(239,68,68,.12); color: #b91c1c; }
+      /* 折叠按钮 */
+      .ai-sessions-toggle {
+        background: none; border: none; cursor: pointer; color: var(--muted);
+        font-size: 13px; padding: 2px 5px; border-radius: 6px; line-height: 1; flex-shrink: 0;
+        transition: transform .2s;
+      }
+      .ai-sessions-toggle:hover { background: rgba(99,153,218,.1); color: var(--primary); }
+      .ai-sessions-toggle.collapsed { transform: rotate(180deg); }
+      .ai-chat-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+      /* 小屏 */
+      @media (max-width: 640px) {
+        .ai-chat-layout { flex-direction: column; }
+        .ai-sessions-panel { width: 100%; max-height: 110px; border-right: none;
+          border-bottom: 1px solid rgba(148,163,184,.2); padding: 0 0 8px; margin: 0 0 10px; }
+        .ai-sessions-panel.collapsed { width: 100%; max-height: 0; padding: 0; margin: 0; border: none; }
+      }
       .ai-chat-input-row {
         display: flex;
         gap: 8px;
@@ -14283,50 +14337,64 @@
           </div>
           <!-- 内置AI聊天 -->
           <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
-              <h3 style="margin:0">内置 AI 解答</h3>
-              <button class="btn small-btn danger" id="aiChatClearBtn">清空对话</button>
-            </div>
-            <!-- 上下文状态栏 -->
-            <div class="ai-ctx-bar" id="aiCtxBar">
-              <span class="ai-ctx-counter" id="aiCtxCounter">0 条消息</span>
-              <button class="ai-ctx-btn" id="aiCtxViewBtn">查看上下文</button>
-              <button class="ai-ctx-btn" id="aiCtxCompressBtn" style="display:none">压缩对话</button>
-            </div>
-            <!-- 提示词选择 -->
-            <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-              <label style="white-space:nowrap;flex-shrink:0">提示词</label>
-              <select id="aiChatPromptSelect" style="flex:1;min-width:160px"></select>
-              <button class="btn small-btn" id="aiChatAddPromptBtn">新增</button>
-              <button class="btn small-btn danger" id="aiChatDelPromptBtn">删除</button>
-            </div>
-            <!-- 对话区 -->
-            <div class="ai-chat-box" id="aiChatBox"></div>
-            <!-- 输入区 -->
-            <div class="ai-chat-input-row">
-              <div class="ai-upload-wrap">
-                <button class="ai-upload-btn" id="aiChatUploadBtn" title="添加附件">+</button>
-                <div class="ai-upload-menu" id="aiChatUploadMenu">
-                  <button class="ai-upload-menu-item" id="aiChatPickImgBtn">🖼 上传图片</button>
-                  <button class="ai-upload-menu-item" id="aiChatPickFileBtn">📄 上传文件</button>
-                </div>
-                <input type="file" id="aiChatImgInput" accept="image/*" style="display:none" />
-                <input type="file" id="aiChatFileInput" style="display:none" />
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <button class="ai-sessions-toggle" id="aiSessionsToggle" title="折叠/展开对话列表">◀</button>
+                <h3 style="margin:0">内置 AI 解答</h3>
               </div>
-              <div style="display:flex;flex-direction:column;flex:1;gap:6px;min-width:0">
-                <div style="display:flex;flex-wrap:wrap;gap:6px">
-                  <div id="aiChatImgPreviewWrap" style="display:none;align-items:center;gap:4px">
-                    <img id="aiChatImgPreview" style="height:36px;border-radius:8px;border:1px solid rgba(148,163,184,.3)" />
-                    <button class="btn small-btn danger" id="aiChatImgClearBtn" style="padding:2px 7px">✕</button>
-                  </div>
-                  <div id="aiChatFilePreviewWrap" style="display:none;align-items:center;gap:4px">
-                    <span id="aiChatFileName" style="font-size:12px;padding:3px 8px;background:rgba(255,255,255,.7);border:1px solid rgba(148,163,184,.3);border-radius:8px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-                    <button class="btn small-btn danger" id="aiChatFileClearBtn" style="padding:2px 7px">✕</button>
-                  </div>
-                </div>
-                <textarea id="aiChatInput" rows="1" placeholder="输入问题，Ctrl+Enter 发送…" style="width:100%;resize:none;min-height:44px;max-height:300px;overflow-y:auto"></textarea>
+              <button class="btn small-btn danger" id="aiChatClearBtn">清空当前对话</button>
+            </div>
+            <!-- 双栏布局：左侧会话列表 + 右侧聊天主区 -->
+            <div class="ai-chat-layout">
+              <!-- 左侧会话列表 -->
+              <div class="ai-sessions-panel" id="aiSessionsPanel">
+                <button class="ai-sessions-new-btn" id="aiNewSessionBtn">＋ 新对话</button>
+                <!-- 会话条目由 JS 动态渲染 -->
               </div>
-              <button class="btn primary" id="aiChatSendBtn">发送</button>
+              <!-- 右侧聊天主区 -->
+              <div class="ai-chat-main">
+                <!-- 上下文状态栏 -->
+                <div class="ai-ctx-bar" id="aiCtxBar">
+                  <span class="ai-ctx-counter" id="aiCtxCounter">0 条消息</span>
+                  <button class="ai-ctx-btn" id="aiCtxViewBtn">查看上下文</button>
+                  <button class="ai-ctx-btn" id="aiCtxCompressBtn" style="display:none">压缩对话</button>
+                </div>
+                <!-- 提示词选择 -->
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+                  <label style="white-space:nowrap;flex-shrink:0">提示词</label>
+                  <select id="aiChatPromptSelect" style="flex:1;min-width:160px"></select>
+                  <button class="btn small-btn" id="aiChatAddPromptBtn">新增</button>
+                  <button class="btn small-btn danger" id="aiChatDelPromptBtn">删除</button>
+                </div>
+                <!-- 对话区 -->
+                <div class="ai-chat-box" id="aiChatBox"></div>
+                <!-- 输入区 -->
+                <div class="ai-chat-input-row">
+                  <div class="ai-upload-wrap">
+                    <button class="ai-upload-btn" id="aiChatUploadBtn" title="添加附件">+</button>
+                    <div class="ai-upload-menu" id="aiChatUploadMenu">
+                      <button class="ai-upload-menu-item" id="aiChatPickImgBtn">🖼 上传图片</button>
+                      <button class="ai-upload-menu-item" id="aiChatPickFileBtn">📄 上传文件</button>
+                    </div>
+                    <input type="file" id="aiChatImgInput" accept="image/*" style="display:none" />
+                    <input type="file" id="aiChatFileInput" style="display:none" />
+                  </div>
+                  <div style="display:flex;flex-direction:column;flex:1;gap:6px;min-width:0">
+                    <div style="display:flex;flex-wrap:wrap;gap:6px">
+                      <div id="aiChatImgPreviewWrap" style="display:none;align-items:center;gap:4px">
+                        <img id="aiChatImgPreview" style="height:36px;border-radius:8px;border:1px solid rgba(148,163,184,.3)" />
+                        <button class="btn small-btn danger" id="aiChatImgClearBtn" style="padding:2px 7px">✕</button>
+                      </div>
+                      <div id="aiChatFilePreviewWrap" style="display:none;align-items:center;gap:4px">
+                        <span id="aiChatFileName" style="font-size:12px;padding:3px 8px;background:rgba(255,255,255,.7);border:1px solid rgba(148,163,184,.3);border-radius:8px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+                        <button class="btn small-btn danger" id="aiChatFileClearBtn" style="padding:2px 7px">✕</button>
+                      </div>
+                    </div>
+                    <textarea id="aiChatInput" rows="1" placeholder="输入问题，Ctrl+Enter 发送…" style="width:100%;resize:none;min-height:44px;max-height:300px;overflow-y:auto"></textarea>
+                  </div>
+                  <button class="btn primary" id="aiChatSendBtn">发送</button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -17411,7 +17479,7 @@
 
       // ── AI 解答聊天 ─────────────────────────────────────────────────────────
 
-      const AI_CHAT_HISTORY_KEY = "aiChatHistory";
+      const AI_CHAT_SESSIONS_KEY = "aiChatSessions";
       const AI_CHAT_PROMPTS_KEY = "aiChatPrompts";
 
       const DEFAULT_PROMPTS = [
@@ -17419,10 +17487,143 @@
         { id: "none", name: "无提示词（通用）", text: "" },
       ];
 
-      let aiChatHistory = [];       // 原始消息列表（仅用户/助手轮次）
-      let aiChatSummary = "";       // 压缩摘要，非空时注入 messages 头部
+      let aiChatHistory = [];       // 当前会话的消息列表（工作副本）
+      let aiChatSummary = "";       // 当前会话的压缩摘要（工作副本）
+      let aiSessions = [];          // 所有会话
+      let aiCurrentSessionId = null;
       let aiChatImageDataUrl = null;
       let aiChatFileData = null;
+
+      /* ── 会话持久化 ────────────────────────────────────── */
+      function loadSessions() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(AI_CHAT_SESSIONS_KEY));
+          if (Array.isArray(saved) && saved.length) return saved;
+        } catch(_) {}
+        return [];
+      }
+
+      function saveSessions() {
+        localStorage.setItem(AI_CHAT_SESSIONS_KEY, JSON.stringify(aiSessions));
+      }
+
+      function saveCurrentSession() {
+        const s = aiSessions.find(s => s.id === aiCurrentSessionId);
+        if (!s) return;
+        // 图片 base64 不持久化，剥离 image_url
+        s.history = aiChatHistory.map(m => {
+          if (!Array.isArray(m.content)) return m;
+          const stripped = m.content.filter(p => p.type !== "image_url");
+          return { ...m, content: stripped.length === 1 ? stripped[0].text : stripped };
+        });
+        s.summary = aiChatSummary;
+        saveSessions();
+      }
+
+      function getSessionTitleFromText(text) {
+        const t = typeof text === "string" ? text : "";
+        return t.slice(0, 15) + (t.length > 15 ? "…" : "");
+      }
+
+      function updateSessionTitle(userText) {
+        const s = aiSessions.find(s => s.id === aiCurrentSessionId);
+        if (s && s.title === "新对话" && userText) {
+          s.title = getSessionTitleFromText(userText);
+        }
+      }
+
+      function createNewSession() {
+        saveCurrentSession();
+        // 上限 50 个，超出删最老
+        if (aiSessions.length >= 50) aiSessions.pop();
+        const id = "sess_" + Date.now();
+        aiSessions.unshift({ id, title: "新对话", createdAt: Date.now(), history: [], summary: "" });
+        aiCurrentSessionId = id;
+        aiChatHistory = [];
+        aiChatSummary = "";
+        saveSessions();
+        $("aiChatBox").innerHTML = "";
+        renderSessionList();
+        updateCtxBar();
+      }
+
+      function switchSession(id) {
+        if (id === aiCurrentSessionId) return;
+        saveCurrentSession();
+        const s = aiSessions.find(s => s.id === id);
+        if (!s) return;
+        aiCurrentSessionId = id;
+        aiChatHistory = s.history ? [...s.history] : [];
+        aiChatSummary = s.summary || "";
+        renderChatBox(s);
+        renderSessionList();
+        updateCtxBar();
+      }
+
+      function deleteSession(id) {
+        if (!confirm("确定删除此对话吗？")) return;
+        aiSessions = aiSessions.filter(s => s.id !== id);
+        saveSessions();
+        if (!aiSessions.length) {
+          createNewSession();
+          return;
+        }
+        if (aiCurrentSessionId === id) {
+          const s = aiSessions[0];
+          aiCurrentSessionId = s.id;
+          aiChatHistory = s.history ? [...s.history] : [];
+          aiChatSummary = s.summary || "";
+          renderChatBox(s);
+          updateCtxBar();
+        }
+        renderSessionList();
+      }
+
+      function renderSessionList() {
+        const panel = $("aiSessionsPanel");
+        panel.querySelectorAll(".ai-session-item").forEach(el => el.remove());
+        aiSessions.forEach(s => {
+          const item = document.createElement("div");
+          item.className = "ai-session-item" + (s.id === aiCurrentSessionId ? " active" : "");
+          const d = new Date(s.createdAt);
+          const dateStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,"0")}`;
+          item.innerHTML = `<div class="ai-session-info"><div class="ai-session-title">${s.title.replace(/</g,"&lt;")}</div><div class="ai-session-date">${dateStr}</div></div><button class="ai-session-del" data-del="${s.id}" title="删除">×</button>`;
+          item.addEventListener("click", (e) => {
+            if (e.target.dataset.del) { deleteSession(e.target.dataset.del); return; }
+            switchSession(s.id);
+          });
+          panel.appendChild(item);
+        });
+      }
+
+      function renderChatBox(session) {
+        const box = $("aiChatBox");
+        box.innerHTML = "";
+        if (!session || !session.history) return;
+        if (session.summary) {
+          const notice = document.createElement("div");
+          notice.style.cssText = "text-align:center;font-size:12px;color:var(--muted);margin:4px 0 6px;padding:4px 12px;background:rgba(16,185,129,.08);border-radius:20px;border:1px solid rgba(16,185,129,.2)";
+          notice.textContent = "✦ 含已压缩的历史摘要";
+          box.appendChild(notice);
+        }
+        session.history.forEach(msg => {
+          if (msg.role === "user") {
+            let text = "", imgUrl = null;
+            if (typeof msg.content === "string") {
+              text = msg.content;
+            } else if (Array.isArray(msg.content)) {
+              const imgPart = msg.content.find(p => p.type === "image_url");
+              const txtPart = msg.content.find(p => p.type === "text");
+              if (imgPart) imgUrl = imgPart.image_url.url;
+              if (txtPart) text = txtPart.text;
+            }
+            appendChatBubble("user", text, imgUrl);
+          } else if (msg.role === "assistant" && typeof msg.content === "string") {
+            appendChatBubble("assistant", msg.content);
+          }
+        });
+        box.scrollTop = box.scrollHeight;
+      }
 
       // 估算 token 数（粗略：中文 1 字≈1 token，英文 4 字符≈1 token）
       function estimateTokens(messages) {
@@ -17465,6 +17666,7 @@
           notice.textContent = "✦ 历史对话已压缩为摘要，最近 2 轮保留原文";
           box.appendChild(notice);
           box.scrollTop = box.scrollHeight;
+          saveCurrentSession();
           updateCtxBar();
         } catch(e) {
           alert("压缩失败：" + e.message);
@@ -17604,6 +17806,7 @@
         if (combinedText) userContent.push({ type: "text", text: combinedText });
         const userMsg = { role: "user", content: userContent.length === 1 && userContent[0].type === "text" ? combinedText : userContent };
         aiChatHistory.push(userMsg);
+        updateSessionTitle(typeof userMsg.content === "string" ? userMsg.content : text);
         updateCtxBar();
 
         // typing indicator
@@ -17624,6 +17827,8 @@
           md.innerHTML = renderMarkdown(reply);
           thinkingEl.appendChild(md);
           aiChatHistory.push({ role: "assistant", content: reply });
+          saveCurrentSession();
+          renderSessionList();
           updateCtxBar();
         } catch (err) {
           thinkingEl.closest(".ai-chat-bubble").className = "ai-chat-bubble error";
@@ -17651,6 +17856,48 @@
       function initAiChatSection() {
         renderAiChatPromptSelect();
 
+        // 初始化会话
+        aiSessions = loadSessions();
+        if (!aiSessions.length) {
+          createNewSession();
+        } else {
+          const s = aiSessions[0];
+          aiCurrentSessionId = s.id;
+          aiChatHistory = s.history ? [...s.history] : [];
+          aiChatSummary = s.summary || "";
+          renderChatBox(s);
+          renderSessionList();
+          updateCtxBar();
+        }
+
+        // 折叠按钮
+        $("aiSessionsToggle").addEventListener("click", () => {
+          const panel = $("aiSessionsPanel");
+          const btn = $("aiSessionsToggle");
+          const collapsed = panel.classList.toggle("collapsed");
+          btn.classList.toggle("collapsed", collapsed);
+        });
+
+        // 新建对话
+        $("aiNewSessionBtn").addEventListener("click", createNewSession);
+
+        // 清空当前对话
+        $("aiChatClearBtn").addEventListener("click", () => {
+          if (!confirm("确定清空当前对话的所有消息吗？")) return;
+          aiChatHistory = [];
+          aiChatSummary = "";
+          $("aiChatBox").innerHTML = "";
+          const s = aiSessions.find(s => s.id === aiCurrentSessionId);
+          if (s) s.title = "新对话";
+          saveCurrentSession();
+          renderSessionList();
+          updateCtxBar();
+        });
+
+        $("aiCtxViewBtn").addEventListener("click", openAiCtxModal);
+        $("aiCtxCompressBtn").addEventListener("click", compressAiChat);
+        window.closeAiCtxModal = closeAiCtxModal;
+
         // upload menu toggle
         $("aiChatUploadBtn").addEventListener("click", (e) => {
           e.stopPropagation();
@@ -17676,15 +17923,6 @@
         chatInput.addEventListener("keydown", (e) => {
           if (e.key === "Enter" && e.ctrlKey) { e.preventDefault(); sendAiChat(); setTimeout(autoGrow, 0); }
         });
-        $("aiChatClearBtn").addEventListener("click", () => {
-          aiChatHistory = [];
-          aiChatSummary = "";
-          $("aiChatBox").innerHTML = "";
-          updateCtxBar();
-        });
-        $("aiCtxViewBtn").addEventListener("click", openAiCtxModal);
-        $("aiCtxCompressBtn").addEventListener("click", compressAiChat);
-        window.closeAiCtxModal = closeAiCtxModal;
         $("aiChatImgInput").addEventListener("change", (e) => {
           const file = e.target.files[0];
           if (!file) return;
