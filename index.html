@@ -18121,54 +18121,128 @@
         $("exportModal").classList.remove("active");
       }
 
-      function importData(file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          try {
-            const data = JSON.parse(event.target.result);
-            if (!data || typeof data !== "object")
-              throw new Error("无效的 JSON 格式");
-            const merged = {
-              ...defaultState(),
-              ...data,
-              subjects: Array.isArray(data.subjects)
-                ? data.subjects.map(normalizeSubject)
-                : defaultState().subjects,
-              sessions: Array.isArray(data.sessions) ? data.sessions : [],
-              plans: Array.isArray(data.plans)
-                ? data.plans.map(normalizePlan)
-                : [],
-              longTermPlans: Array.isArray(data.longTermPlans)
-                ? data.longTermPlans
-                : [],
-              mistakes: Array.isArray(data.mistakes)
-                ? data.mistakes.map(normalizeMistake)
-                : [],
-              reviews: normalizeReviewsMap(data.reviews),
-              settings: {
-                ...defaultState().settings,
-                ...(data.settings || {}),
-              },
-            };
-            if (app.timer.running) {
-              clearInterval(app.timer.intervalId);
-              app.timer.running = false;
-              app.timer.intervalId = null;
-            }
-            app.state = merged;
-            app.timer.total = app.state.settings.focusMinutes * 60;
-            app.timer.remaining = app.timer.total;
-            app.timer.elapsedSeconds = 0;
-            app.timer.mode = "countdown";
-            app.timer.phase = "focus";
-            saveState();
-            renderAll();
-            alert("数据已恢复成功。");
-          } catch (err) {
-            alert(`数据导入失败：${err.message}`);
+      function parseBackupFile(data) {
+        if (data.version) return data;
+        // 旧格式：顶层直接是 app.state 内容
+        return { version: 0, exportedAt: null, main: data };
+      }
+
+      function showImportDialog(parsed) {
+        const hasMain = !!parsed.main;
+        const hasAiChat = !!(
+          parsed.aiChat &&
+          (Array.isArray(parsed.aiChat.sessions) ||
+            Array.isArray(parsed.aiChat.prompts))
+        );
+        const hasAiReminder =
+          typeof parsed.aiReminder === "string" && parsed.aiReminder !== "";
+
+        const row = (id, label, has) =>
+          `<label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:${has ? "pointer" : "default"};${has ? "" : "opacity:0.4;pointer-events:none"}">` +
+          `<input type="checkbox" id="${id}" ${has ? "checked" : "disabled"} />` +
+          `${label}${has ? "" : "（备份中不含此项）"}` +
+          `</label>`;
+
+        $("importModalBody").innerHTML =
+          row(
+            "importMain",
+            "主数据（学习记录、计划、错题、复盘、设置）",
+            hasMain,
+          ) +
+          row("importAiChat", "AI 聊天记录", hasAiChat) +
+          row("importAiReminder", "AI 仪表盘提醒", hasAiReminder);
+
+        $("importModal")._parsed = parsed;
+        $("importModal").classList.add("active");
+      }
+
+      function closeImportModal() {
+        $("importModal").classList.remove("active");
+      }
+
+      function applyImport() {
+        const parsed = $("importModal")._parsed;
+        if (!parsed) return;
+        const includeMain = !!($("importMain") && $("importMain").checked);
+        const includeAiChat = !!(
+          $("importAiChat") && $("importAiChat").checked
+        );
+        const includeAiReminder = !!(
+          $("importAiReminder") && $("importAiReminder").checked
+        );
+
+        if (includeMain && parsed.main) {
+          const data = parsed.main;
+          const merged = {
+            ...defaultState(),
+            ...data,
+            subjects: Array.isArray(data.subjects)
+              ? data.subjects.map(normalizeSubject)
+              : defaultState().subjects,
+            sessions: Array.isArray(data.sessions) ? data.sessions : [],
+            plans: Array.isArray(data.plans)
+              ? data.plans.map(normalizePlan)
+              : [],
+            longTermPlans: Array.isArray(data.longTermPlans)
+              ? data.longTermPlans
+              : [],
+            mistakes: Array.isArray(data.mistakes)
+              ? data.mistakes.map(normalizeMistake)
+              : [],
+            reviews: normalizeReviewsMap(data.reviews),
+            settings: {
+              ...defaultState().settings,
+              ...(data.settings || {}),
+            },
+          };
+          if (app.timer.running) {
+            clearInterval(app.timer.intervalId);
+            app.timer.running = false;
+            app.timer.intervalId = null;
           }
-        };
-        reader.readAsText(file);
+          app.state = merged;
+          app.timer.total = app.state.settings.focusMinutes * 60;
+          app.timer.remaining = app.timer.total;
+          app.timer.elapsedSeconds = 0;
+          app.timer.mode = "countdown";
+          app.timer.phase = "focus";
+          saveState();
+        }
+
+        if (includeAiChat && parsed.aiChat) {
+          const sessions = Array.isArray(parsed.aiChat.sessions)
+            ? parsed.aiChat.sessions
+            : [];
+          const prompts = Array.isArray(parsed.aiChat.prompts)
+            ? parsed.aiChat.prompts
+            : [];
+          localStorage.setItem(AI_CHAT_SESSIONS_KEY, JSON.stringify(sessions));
+          localStorage.setItem(AI_CHAT_PROMPTS_KEY, JSON.stringify(prompts));
+          aiSessions = sessions;
+          if (sessions.length) {
+            aiCurrentSessionId = sessions[0].id;
+            aiChatHistory = sessions[0].history ? [...sessions[0].history] : [];
+            aiChatSummary = sessions[0].summary || "";
+            renderChatBox(sessions[0]);
+            renderSessionList();
+            updateCtxBar();
+          } else {
+            createNewSession();
+          }
+        }
+
+        if (includeAiReminder) {
+          const reminder =
+            typeof parsed.aiReminder === "string" ? parsed.aiReminder : "";
+          if (reminder) {
+            localStorage.setItem("aiDashboardReminder", reminder);
+          } else {
+            localStorage.removeItem("aiDashboardReminder");
+          }
+        }
+
+        renderAll();
+        alert("数据已恢复成功。");
       }
 
       function buildDataSummary(date) {
