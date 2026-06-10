@@ -15646,6 +15646,36 @@
           );
         if (minutes >= dailyGoal)
           lines.push("今日学习目标已达成，继续保持节奏。");
+
+        const ltpAll = app.state.longTermPlans || [];
+        if (!ltpAll.filter((p) => !p.completed).length) {
+          lines.push('尚未设置长期备考计划，建议在"计划"页规划阶段目标和科目排期。');
+        } else {
+          const warnEnd = dateOffsetISO(2);
+          ltpAll
+            .filter((p) => !p.completed && p.endDate >= today && p.endDate <= warnEnd)
+            .forEach((p) => {
+              const days = Math.round(
+                (new Date(`${p.endDate}T00:00:00`) - new Date(`${today}T00:00:00`)) / DAY,
+              );
+              lines.push(
+                `长期计划「${p.title}」将于 ${p.endDate} 到期（还有 ${days} 天），请注意收尾。`,
+              );
+            });
+          ltpAll.forEach((stage) => {
+            (stage.subjectPlans || [])
+              .filter((sp) => !sp.completed && sp.endDate >= today && sp.endDate <= warnEnd)
+              .forEach((sp) => {
+                const days = Math.round(
+                  (new Date(`${sp.endDate}T00:00:00`) - new Date(`${today}T00:00:00`)) / DAY,
+                );
+                lines.push(
+                  `「${stage.title}」中${subjectName(sp.subjectId)}排期将于 ${sp.endDate} 到期（还有 ${days} 天）。`,
+                );
+              });
+          });
+        }
+
         return lines.join("\n");
       }
 
@@ -17973,12 +18003,33 @@
           reason: m.reason,
           tags: m.tags,
         }));
+        const today = date;
+        const warnEnd = addDaysISO(today, 2);
+        const ltpAll = app.state.longTermPlans || [];
+        const longTermPlans = ltpAll.map((p) => ({
+          title: p.title,
+          startDate: p.startDate,
+          endDate: p.endDate,
+          completed: p.completed,
+          subjectPlans: (p.subjectPlans || []).map((sp) => ({
+            subject: subjectName(sp.subjectId),
+            startDate: sp.startDate,
+            endDate: sp.endDate,
+            completed: sp.completed,
+          })),
+        }));
+        const expiringLtp = ltpAll
+          .filter((p) => !p.completed && p.endDate >= today && p.endDate <= warnEnd)
+          .map((p) => ({ title: p.title, endDate: p.endDate }));
         return {
           date,
           totalStudyMinutes: totalMinutesForDate(date),
           plans,
           sessions,
           mistakes,
+          longTermPlans,
+          expiringLtp,
+          hasLongTermPlan: ltpAll.some((p) => !p.completed),
         };
       }
 
@@ -18207,7 +18258,7 @@
             {
               role: "system",
               content:
-                "你是公务员考试备考提醒助手。输出 3-5 条冷静、具体、可执行的提醒。请用纯文本分点输出，不要使用 Markdown，不要使用星号、井号、下划线、反引号。每条建议前用 1、2、3、4、5 编号。",
+                "你是公务员考试备考提醒助手。输出 3-5 条冷静、具体、可执行的提醒。请用纯文本分点输出，不要使用 Markdown，不要使用星号、井号、下划线、反引号。每条建议前用 1、2、3、4、5 编号。如果用户没有设置长期计划（hasLongTermPlan 为 false），请提醒他规划阶段性备考目标；如果有即将到期的长期计划（expiringLtp 不为空），请明确提醒到期时间并给出收尾建议。",
             },
             {
               role: "user",
