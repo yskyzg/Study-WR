@@ -13444,6 +13444,40 @@
       .ai-md ul, .ai-md ol { padding-left: 20px; margin: 6px 0; }
       .ai-md li { margin: 3px 0; }
       .ai-md h1,.ai-md h2,.ai-md h3 { font-weight: 700; margin: 10px 0 4px; }
+      /* 上下文状态栏 */
+      .ai-ctx-bar {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 12px; color: var(--muted); margin-bottom: 8px; flex-wrap: wrap;
+      }
+      .ai-ctx-counter { padding: 2px 8px; border-radius: 20px; background: rgba(148,163,184,.15); border: 1px solid rgba(148,163,184,.25); }
+      .ai-ctx-counter.warn { background: rgba(245,158,11,.15); border-color: rgba(245,158,11,.4); color: #b45309; }
+      .ai-ctx-counter.danger { background: rgba(239,68,68,.13); border-color: rgba(239,68,68,.35); color: #b91c1c; }
+      .ai-ctx-btn { background: none; border: none; cursor: pointer; font-size: 12px; color: var(--primary); padding: 2px 6px; border-radius: 6px; text-decoration: underline; }
+      .ai-ctx-btn:hover { background: rgba(99,153,218,.1); }
+      /* 上下文弹窗 */
+      .ai-ctx-modal-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 1000;
+        display: flex; align-items: center; justify-content: center; padding: 20px;
+      }
+      .ai-ctx-modal {
+        background: var(--card-bg, #fff); border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,.18);
+        width: 100%; max-width: 700px; max-height: 80vh; display: flex; flex-direction: column;
+        border: 1px solid rgba(148,163,184,.25);
+      }
+      .ai-ctx-modal-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 14px 18px; border-bottom: 1px solid rgba(148,163,184,.2);
+      }
+      .ai-ctx-modal-header h4 { margin: 0; font-size: 15px; }
+      .ai-ctx-modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--muted); line-height: 1; }
+      .ai-ctx-modal-body { overflow-y: auto; padding: 14px 18px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+      .ai-ctx-msg { border-radius: 10px; padding: 10px 13px; font-size: 13px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
+      .ai-ctx-msg.system { background: rgba(147,51,234,.08); border: 1px solid rgba(147,51,234,.2); }
+      .ai-ctx-msg.summary { background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.22); }
+      .ai-ctx-msg.user { background: rgba(99,153,218,.1); border: 1px solid rgba(99,153,218,.25); }
+      .ai-ctx-msg.assistant { background: rgba(255,255,255,.8); border: 1px solid rgba(148,163,184,.22); }
+      .ai-ctx-msg-role { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; opacity: .65; }
+      .ai-ctx-summary-badge { display:inline-block; font-size:11px; padding:1px 7px; border-radius:20px; background:rgba(16,185,129,.15); color:#065f46; border:1px solid rgba(16,185,129,.3); margin-bottom:6px; }
       .ai-md blockquote { border-left: 3px solid rgba(79,143,216,.5); padding-left: 10px; margin: 6px 0; color: var(--muted); }
       .ai-chat-input-row {
         display: flex;
@@ -14249,9 +14283,15 @@
           </div>
           <!-- 内置AI聊天 -->
           <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
               <h3 style="margin:0">内置 AI 解答</h3>
               <button class="btn small-btn danger" id="aiChatClearBtn">清空对话</button>
+            </div>
+            <!-- 上下文状态栏 -->
+            <div class="ai-ctx-bar" id="aiCtxBar">
+              <span class="ai-ctx-counter" id="aiCtxCounter">0 条消息</span>
+              <button class="ai-ctx-btn" id="aiCtxViewBtn">查看上下文</button>
+              <button class="ai-ctx-btn" id="aiCtxCompressBtn" style="display:none">压缩对话</button>
             </div>
             <!-- 提示词选择 -->
             <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
@@ -17379,9 +17419,102 @@
         { id: "none", name: "无提示词（通用）", text: "" },
       ];
 
-      let aiChatHistory = [];
+      let aiChatHistory = [];       // 原始消息列表（仅用户/助手轮次）
+      let aiChatSummary = "";       // 压缩摘要，非空时注入 messages 头部
       let aiChatImageDataUrl = null;
-      let aiChatFileData = null; // { name, text }
+      let aiChatFileData = null;
+
+      // 估算 token 数（粗略：中文 1 字≈1 token，英文 4 字符≈1 token）
+      function estimateTokens(messages) {
+        return messages.reduce((sum, m) => {
+          const text = typeof m.content === "string" ? m.content : JSON.stringify(m.content);
+          return sum + Math.ceil(text.length / 2);
+        }, 0);
+      }
+
+      function updateCtxBar() {
+        const n = aiChatHistory.length;
+        const tokens = estimateTokens(aiChatHistory) + Math.ceil((aiChatSummary.length) / 2);
+        const counter = $("aiCtxCounter");
+        const compressBtn = $("aiCtxCompressBtn");
+        counter.textContent = `${n} 条消息 · ~${tokens} tokens`;
+        counter.className = "ai-ctx-counter" + (tokens > 6000 ? " danger" : tokens > 3000 ? " warn" : "");
+        compressBtn.style.display = n >= 4 ? "" : "none";
+      }
+
+      async function compressAiChat() {
+        if (aiChatHistory.length < 4) return;
+        const compressBtn = $("aiCtxCompressBtn");
+        compressBtn.disabled = true;
+        compressBtn.textContent = "压缩中…";
+        try {
+          const toCompress = aiChatHistory.slice(0, -2); // 保留最近 2 轮原文
+          const kept = aiChatHistory.slice(-2);
+          const summaryPrompt = [
+            { role: "system", content: "你是一个对话摘要助手，请将以下对话内容压缩为一段简洁的摘要，保留所有关键信息、结论和重要细节，以中文输出，不超过 400 字。" },
+            { role: "user", content: toCompress.map(m => `[${m.role}]: ${typeof m.content === "string" ? m.content : JSON.stringify(m.content)}`).join("\n\n") }
+          ];
+          const summary = await callAi(summaryPrompt);
+          const prev = aiChatSummary ? aiChatSummary + "\n\n" + summary : summary;
+          aiChatSummary = prev;
+          aiChatHistory = kept;
+          // 在聊天框插入系统提示气泡
+          const box = $("aiChatBox");
+          const notice = document.createElement("div");
+          notice.style.cssText = "text-align:center;font-size:12px;color:var(--muted);margin:6px 0;padding:4px 12px;background:rgba(16,185,129,.08);border-radius:20px;border:1px solid rgba(16,185,129,.2)";
+          notice.textContent = "✦ 历史对话已压缩为摘要，最近 2 轮保留原文";
+          box.appendChild(notice);
+          box.scrollTop = box.scrollHeight;
+          updateCtxBar();
+        } catch(e) {
+          alert("压缩失败：" + e.message);
+        } finally {
+          compressBtn.disabled = false;
+          compressBtn.textContent = "压缩对话";
+        }
+      }
+
+      function buildMessages(systemText) {
+        const messages = [];
+        if (systemText) messages.push({ role: "system", content: systemText });
+        if (aiChatSummary) messages.push({ role: "system", content: "【历史对话摘要】\n" + aiChatSummary });
+        messages.push(...aiChatHistory);
+        return messages;
+      }
+
+      function openAiCtxModal() {
+        const prompts = loadAiChatPrompts();
+        const selId = $("aiChatPromptSelect").value;
+        const prompt = prompts.find(p => p.id === selId);
+        const systemText = prompt ? prompt.text : "";
+        const messages = buildMessages(systemText);
+        const body = $("aiCtxModalBody");
+        body.innerHTML = "";
+        if (!messages.length) {
+          body.innerHTML = "<div style='color:var(--muted);font-size:13px;text-align:center;padding:20px'>上下文为空</div>";
+        } else {
+          messages.forEach(m => {
+            const isSummary = m.role === "system" && m.content.startsWith("【历史对话摘要】");
+            const el = document.createElement("div");
+            el.className = "ai-ctx-msg " + (isSummary ? "summary" : m.role);
+            const roleLabel = { system: "系统提示词", user: "用户", assistant: "AI", summary: "历史摘要" };
+            const displayRole = isSummary ? "历史摘要" : (roleLabel[m.role] || m.role);
+            const text = typeof m.content === "string" ? m.content : JSON.stringify(m.content, null, 2);
+            el.innerHTML = `<div class="ai-ctx-msg-role">${displayRole}</div>${isSummary ? '<span class="ai-ctx-summary-badge">已压缩</span><br>' : ""}${text.replace(/</g, "&lt;")}`;
+            body.appendChild(el);
+          });
+        }
+        const total = estimateTokens(messages);
+        const info = document.createElement("div");
+        info.style.cssText = "font-size:12px;color:var(--muted);text-align:right;padding-top:4px";
+        info.textContent = `共 ${messages.length} 条 · 约 ${total} tokens`;
+        body.appendChild(info);
+        $("aiCtxModalOverlay").style.display = "flex";
+      }
+
+      function closeAiCtxModal() {
+        $("aiCtxModalOverlay").style.display = "none";
+      }
 
       function renderMarkdown(text) {
         if (typeof marked === "undefined") return text.replace(/</g, "&lt;");
@@ -17471,6 +17604,7 @@
         if (combinedText) userContent.push({ type: "text", text: combinedText });
         const userMsg = { role: "user", content: userContent.length === 1 && userContent[0].type === "text" ? combinedText : userContent };
         aiChatHistory.push(userMsg);
+        updateCtxBar();
 
         // typing indicator
         const thinkingEl = appendChatBubble("assistant", "思考中…");
@@ -17481,9 +17615,7 @@
           const prompt = prompts.find(p => p.id === selId);
           const systemText = prompt ? prompt.text : "";
 
-          const messages = [];
-          if (systemText) messages.push({ role: "system", content: systemText });
-          messages.push(...aiChatHistory);
+          const messages = buildMessages(systemText);
 
           const reply = await callAi(messages);
           thinkingEl.innerHTML = "";
@@ -17492,10 +17624,12 @@
           md.innerHTML = renderMarkdown(reply);
           thinkingEl.appendChild(md);
           aiChatHistory.push({ role: "assistant", content: reply });
+          updateCtxBar();
         } catch (err) {
           thinkingEl.closest(".ai-chat-bubble").className = "ai-chat-bubble error";
           thinkingEl.querySelector("span") ? thinkingEl.querySelector("span").textContent = err.message : (thinkingEl.textContent = err.message);
           aiChatHistory.pop();
+          updateCtxBar();
         } finally {
           sendBtn.disabled = false;
           $("aiChatBox").scrollTop = $("aiChatBox").scrollHeight;
@@ -17544,8 +17678,13 @@
         });
         $("aiChatClearBtn").addEventListener("click", () => {
           aiChatHistory = [];
+          aiChatSummary = "";
           $("aiChatBox").innerHTML = "";
+          updateCtxBar();
         });
+        $("aiCtxViewBtn").addEventListener("click", openAiCtxModal);
+        $("aiCtxCompressBtn").addEventListener("click", compressAiChat);
+        window.closeAiCtxModal = closeAiCtxModal;
         $("aiChatImgInput").addEventListener("change", (e) => {
           const file = e.target.files[0];
           if (!file) return;
@@ -18044,5 +18183,16 @@
 
       init();
     </script>
+
+  <!-- 上下文查看弹窗 -->
+  <div class="ai-ctx-modal-overlay" id="aiCtxModalOverlay" style="display:none" onclick="if(event.target===this)closeAiCtxModal()">
+    <div class="ai-ctx-modal">
+      <div class="ai-ctx-modal-header">
+        <h4>当前上下文窗口</h4>
+        <button class="ai-ctx-modal-close" onclick="closeAiCtxModal()">×</button>
+      </div>
+      <div class="ai-ctx-modal-body" id="aiCtxModalBody"></div>
+    </div>
+  </div>
   </body>
 </html>
