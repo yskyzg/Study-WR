@@ -13451,6 +13451,44 @@
         line-height: 1.7;
       }
 
+      .ai-reminder-card {
+        border: 1px solid rgba(121, 143, 255, 0.26);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.46);
+        box-shadow: 0 10px 24px rgba(89, 102, 170, 0.1);
+        cursor: pointer;
+        overflow: hidden;
+      }
+
+      .ai-reminder-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 12px;
+        color: var(--text);
+        font-weight: 700;
+        line-height: 1.3;
+      }
+
+      .ai-reminder-arrow {
+        color: var(--muted);
+        transition: transform 0.18s ease;
+      }
+
+      .ai-reminder-body {
+        padding: 0 14px 14px;
+        color: var(--text);
+      }
+
+      .ai-reminder-card[aria-expanded="false"] .ai-reminder-arrow {
+        transform: rotate(-90deg);
+      }
+
+      .ai-reminder-card[aria-expanded="false"] .ai-reminder-body {
+        display: none;
+      }
+
       /* AI解答 — 外部工具卡片 */
       .ai-ext-grid {
         display: grid;
@@ -14054,6 +14092,10 @@
       [data-theme="dark"] .notice {
         background: rgba(20, 32, 52, 0.6);
         color: var(--text);
+      }
+      [data-theme="dark"] .ai-reminder-card {
+        background: rgba(20, 32, 52, 0.6);
+        border-color: rgba(121, 178, 255, 0.28);
       }
       [data-theme="dark"] .btn {
         background: rgba(20, 32, 52, 0.75);
@@ -15623,8 +15665,7 @@
           `${Math.round(weekMinutes)} / ${weeklyGoal} 分钟`;
         $("smartReminder").textContent = buildLocalReminder();
         const savedAiReminder = localStorage.getItem("aiDashboardReminder");
-        if (savedAiReminder)
-          $("dashboardAiResult").textContent = savedAiReminder;
+        renderDashboardAiReminder(savedAiReminder);
         renderCharts();
       }
 
@@ -18285,6 +18326,28 @@
             : "每日模式只复盘所选日期当天的数据。";
       }
 
+      function renderDashboardAiReminder(content, expanded = true) {
+        const target = $("dashboardAiResult");
+        const text = String(content || "").trim();
+        if (!text) {
+          target.innerHTML = "";
+          return;
+        }
+        target.innerHTML = `
+          <div class="ai-reminder-card" data-ai-reminder-toggle role="button" tabindex="0" aria-expanded="${expanded ? "true" : "false"}">
+            <div class="ai-reminder-head">
+              <span>AI 生成提醒</span>
+              <span class="ai-reminder-arrow">⌄</span>
+            </div>
+            <div class="ai-reminder-body">${escapeHtml(text)}</div>
+          </div>`;
+      }
+
+      function toggleDashboardAiReminder(card) {
+        const expanded = card.getAttribute("aria-expanded") !== "false";
+        card.setAttribute("aria-expanded", expanded ? "false" : "true");
+      }
+
       async function generateDashboardReminder() {
         const target = $("dashboardAiResult");
         target.textContent = "AI 提醒生成中...";
@@ -18301,7 +18364,7 @@
               content: `请基于今天的计划完成情况、学习时间和错题数据给出智能提醒：${JSON.stringify(summary, null, 2)}`,
             },
           ]);
-          target.textContent = content;
+          renderDashboardAiReminder(content);
           localStorage.setItem("aiDashboardReminder", content);
         } catch (err) {
           target.textContent = err.message;
@@ -19073,6 +19136,17 @@
           "click",
           generateDashboardReminder,
         );
+        $("dashboardAiResult").addEventListener("click", (event) => {
+          const card = event.target.closest("[data-ai-reminder-toggle]");
+          if (card) toggleDashboardAiReminder(card);
+        });
+        $("dashboardAiResult").addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          const card = event.target.closest("[data-ai-reminder-toggle]");
+          if (!card) return;
+          event.preventDefault();
+          toggleDashboardAiReminder(card);
+        });
         $("reviewDate").addEventListener("change", () => {
           app.reviewFormDirty = true;
           loadReviewIntoForm();
