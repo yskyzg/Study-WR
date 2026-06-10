@@ -13330,6 +13330,104 @@
         text-decoration: line-through;
       }
 
+      /* 长期计划 */
+      .ltp-card {
+        border: 1px solid rgba(103, 232, 249, 0.35);
+        border-left: 4px solid #67e8f9;
+        border-radius: var(--radius);
+        background: rgba(103, 232, 249, 0.06);
+        margin-bottom: 10px;
+        overflow: hidden;
+      }
+      .ltp-card.completed {
+        border-left-color: #94a3b8;
+        background: rgba(148, 163, 184, 0.05);
+        opacity: 0.7;
+      }
+      .ltp-card-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .ltp-card-head:hover {
+        background: rgba(103, 232, 249, 0.08);
+      }
+      .ltp-title {
+        font-weight: 700;
+        flex: 1;
+        font-size: 0.97rem;
+      }
+      .ltp-title.strike {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+      .ltp-date-range {
+        font-size: 0.8rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .ltp-toggle-btn {
+        font-size: 0.75rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--muted);
+        padding: 2px 4px;
+        transition: transform 0.2s;
+      }
+      .ltp-body {
+        padding: 0 12px 10px 12px;
+        border-top: 1px solid rgba(103, 232, 249, 0.15);
+      }
+      .ltp-note {
+        font-size: 0.82rem;
+        color: var(--muted);
+        margin: 6px 0 8px;
+      }
+      .ltp-sp-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 0;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        flex-wrap: wrap;
+      }
+      .ltp-sp-item:last-of-type {
+        border-bottom: none;
+      }
+      .ltp-progress-wrap {
+        flex: 1;
+        min-width: 80px;
+      }
+      .ltp-progress-bar {
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(148, 163, 184, 0.18);
+        overflow: hidden;
+      }
+      .ltp-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #67e8f9, #38bdf8);
+        border-radius: 3px;
+        transition: width 0.3s;
+      }
+      .ltp-sp-item.completed .ltp-progress-fill {
+        background: #94a3b8;
+      }
+      .ltp-completed-section-head {
+        font-size: 0.82rem;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 4px 0;
+        user-select: none;
+      }
+      .ltp-completed-section-head:hover {
+        color: var(--text);
+      }
+
       .notice {
         border-left: 4px solid rgba(79, 143, 216, 0.72);
         background: rgba(255, 255, 255, 0.44);
@@ -13357,8 +13455,8 @@
         gap: 10px;
         padding: 10px 14px;
         border-radius: 16px;
-        background: rgba(255,255,255,0.55);
-        border: 1px solid rgba(148,163,184,.22);
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid rgba(148, 163, 184, 0.22);
         text-decoration: none;
         color: var(--text);
         transition: 0.18s ease;
@@ -13366,26 +13464,40 @@
       }
       .ai-ext-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 10px 26px rgba(86,111,145,.16);
-        background: rgba(255,255,255,.82);
+        box-shadow: 0 10px 26px rgba(86, 111, 145, 0.16);
+        background: rgba(255, 255, 255, 0.82);
       }
-      .ai-ext-icon { font-size: 22px; flex-shrink: 0; }
-      .ai-ext-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-      .ai-ext-name { font-weight: 700; font-size: 14px; }
-      .ai-ext-desc { font-size: 11px; color: var(--muted); }
+      .ai-ext-icon {
+        font-size: 22px;
+        flex-shrink: 0;
+      }
+      .ai-ext-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
+      }
+      .ai-ext-name {
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .ai-ext-desc {
+        font-size: 11px;
+        color: var(--muted);
+      }
 
       /* AI解答 — 聊天区 */
       .ai-chat-box {
         min-height: 480px;
         max-height: 65vh;
         overflow-y: auto;
-        border: 1px solid rgba(148,163,184,.22);
+        border: 1px solid rgba(148, 163, 184, 0.22);
         border-radius: 16px;
         padding: 14px;
         display: flex;
         flex-direction: column;
         gap: 12px;
-        background: rgba(255,255,255,.32);
+        background: rgba(255, 255, 255, 0.32);
         margin-bottom: 12px;
       }
       .ai-chat-bubble {
@@ -13393,8 +13505,13 @@
         gap: 8px;
         max-width: 86%;
       }
-      .ai-chat-bubble.user { align-self: flex-end; flex-direction: row-reverse; }
-      .ai-chat-bubble.assistant { align-self: flex-start; }
+      .ai-chat-bubble.user {
+        align-self: flex-end;
+        flex-direction: row-reverse;
+      }
+      .ai-chat-bubble.assistant {
+        align-self: flex-start;
+      }
       .ai-chat-avatar {
         width: 30px;
         height: 30px;
@@ -13404,9 +13521,11 @@
         align-items: center;
         justify-content: center;
         font-size: 15px;
-        background: rgba(106,169,232,.2);
+        background: rgba(106, 169, 232, 0.2);
       }
-      .ai-chat-bubble.user .ai-chat-avatar { background: rgba(106,169,232,.35); }
+      .ai-chat-bubble.user .ai-chat-avatar {
+        background: rgba(106, 169, 232, 0.35);
+      }
       .ai-chat-content {
         padding: 10px 13px;
         border-radius: 14px;
@@ -13421,117 +13540,353 @@
         border-bottom-right-radius: 4px;
       }
       .ai-chat-bubble.assistant .ai-chat-content {
-        background: rgba(255,255,255,.72);
-        border: 1px solid rgba(148,163,184,.22);
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(148, 163, 184, 0.22);
         color: var(--text);
         border-bottom-left-radius: 4px;
       }
       .ai-chat-bubble.error .ai-chat-content {
-        background: rgba(211,95,112,.1);
-        border: 1px solid rgba(211,95,112,.25);
+        background: rgba(211, 95, 112, 0.1);
+        border: 1px solid rgba(211, 95, 112, 0.25);
         color: #a44151;
       }
-      .ai-chat-img { max-width: 200px; max-height: 180px; border-radius: 10px; margin-top: 6px; display: block; }
-      .ai-md { line-height: 1.7; white-space: normal; }
-      .ai-md p { margin: 0 0 8px; }
-      .ai-md p:last-child { margin-bottom: 0; }
-      .ai-md p:empty { display: none; }
-      .ai-md strong { font-weight: 700; }
-      .ai-md em { font-style: italic; }
-      .ai-md code { font-family: monospace; background: rgba(0,0,0,.07); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
-      .ai-md pre { background: rgba(0,0,0,.06); border-radius: 10px; padding: 10px 13px; overflow-x: auto; margin: 8px 0; }
-      .ai-md pre code { background: none; padding: 0; }
-      .ai-md ul, .ai-md ol { padding-left: 20px; margin: 6px 0; }
-      .ai-md li { margin: 3px 0; }
-      .ai-md h1,.ai-md h2,.ai-md h3 { font-weight: 700; margin: 10px 0 4px; }
+      .ai-chat-img {
+        max-width: 200px;
+        max-height: 180px;
+        border-radius: 10px;
+        margin-top: 6px;
+        display: block;
+      }
+      .ai-md {
+        line-height: 1.7;
+        white-space: normal;
+      }
+      .ai-md p {
+        margin: 0 0 8px;
+      }
+      .ai-md p:last-child {
+        margin-bottom: 0;
+      }
+      .ai-md p:empty {
+        display: none;
+      }
+      .ai-md strong {
+        font-weight: 700;
+      }
+      .ai-md em {
+        font-style: italic;
+      }
+      .ai-md code {
+        font-family: monospace;
+        background: rgba(0, 0, 0, 0.07);
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+      .ai-md pre {
+        background: rgba(0, 0, 0, 0.06);
+        border-radius: 10px;
+        padding: 10px 13px;
+        overflow-x: auto;
+        margin: 8px 0;
+      }
+      .ai-md pre code {
+        background: none;
+        padding: 0;
+      }
+      .ai-md ul,
+      .ai-md ol {
+        padding-left: 20px;
+        margin: 6px 0;
+      }
+      .ai-md li {
+        margin: 3px 0;
+      }
+      .ai-md h1,
+      .ai-md h2,
+      .ai-md h3 {
+        font-weight: 700;
+        margin: 10px 0 4px;
+      }
       /* 上下文状态栏 */
       .ai-ctx-bar {
-        display: flex; align-items: center; gap: 8px;
-        font-size: 12px; color: var(--muted); margin-bottom: 8px; flex-wrap: wrap;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 8px;
+        flex-wrap: wrap;
       }
-      .ai-ctx-counter { padding: 2px 8px; border-radius: 20px; background: rgba(148,163,184,.15); border: 1px solid rgba(148,163,184,.25); }
-      .ai-ctx-counter.warn { background: rgba(245,158,11,.15); border-color: rgba(245,158,11,.4); color: #b45309; }
-      .ai-ctx-counter.danger { background: rgba(239,68,68,.13); border-color: rgba(239,68,68,.35); color: #b91c1c; }
-      .ai-ctx-btn { background: none; border: none; cursor: pointer; font-size: 12px; color: var(--primary); padding: 2px 6px; border-radius: 6px; text-decoration: underline; }
-      .ai-ctx-btn:hover { background: rgba(99,153,218,.1); }
+      .ai-ctx-counter {
+        padding: 2px 8px;
+        border-radius: 20px;
+        background: rgba(148, 163, 184, 0.15);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+      }
+      .ai-ctx-counter.warn {
+        background: rgba(245, 158, 11, 0.15);
+        border-color: rgba(245, 158, 11, 0.4);
+        color: #b45309;
+      }
+      .ai-ctx-counter.danger {
+        background: rgba(239, 68, 68, 0.13);
+        border-color: rgba(239, 68, 68, 0.35);
+        color: #b91c1c;
+      }
+      .ai-ctx-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 12px;
+        color: var(--primary);
+        padding: 2px 6px;
+        border-radius: 6px;
+        text-decoration: underline;
+      }
+      .ai-ctx-btn:hover {
+        background: rgba(99, 153, 218, 0.1);
+      }
       /* 上下文弹窗 */
       .ai-ctx-modal-overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 1000;
-        display: flex; align-items: center; justify-content: center; padding: 20px;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
       }
       .ai-ctx-modal {
-        background: var(--card-bg, #fff); border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,.18);
-        width: 100%; max-width: 700px; max-height: 80vh; display: flex; flex-direction: column;
-        border: 1px solid rgba(148,163,184,.25);
+        background: var(--card-bg, #fff);
+        border-radius: 16px;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+        width: 100%;
+        max-width: 700px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid rgba(148, 163, 184, 0.25);
       }
       .ai-ctx-modal-header {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 14px 18px; border-bottom: 1px solid rgba(148,163,184,.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.2);
       }
-      .ai-ctx-modal-header h4 { margin: 0; font-size: 15px; }
-      .ai-ctx-modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--muted); line-height: 1; }
-      .ai-ctx-modal-body { overflow-y: auto; padding: 14px 18px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
-      .ai-ctx-msg { border-radius: 10px; padding: 10px 13px; font-size: 13px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
-      .ai-ctx-msg.system { background: rgba(147,51,234,.08); border: 1px solid rgba(147,51,234,.2); }
-      .ai-ctx-msg.summary { background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.22); }
-      .ai-ctx-msg.user { background: rgba(99,153,218,.1); border: 1px solid rgba(99,153,218,.25); }
-      .ai-ctx-msg.assistant { background: rgba(255,255,255,.8); border: 1px solid rgba(148,163,184,.22); }
-      .ai-ctx-msg-role { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; opacity: .65; }
-      .ai-ctx-summary-badge { display:inline-block; font-size:11px; padding:1px 7px; border-radius:20px; background:rgba(16,185,129,.15); color:#065f46; border:1px solid rgba(16,185,129,.3); margin-bottom:6px; }
-      .ai-md blockquote { border-left: 3px solid rgba(79,143,216,.5); padding-left: 10px; margin: 6px 0; color: var(--muted); }
+      .ai-ctx-modal-header h4 {
+        margin: 0;
+        font-size: 15px;
+      }
+      .ai-ctx-modal-close {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: var(--muted);
+        line-height: 1;
+      }
+      .ai-ctx-modal-body {
+        overflow-y: auto;
+        padding: 14px 18px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .ai-ctx-msg {
+        border-radius: 10px;
+        padding: 10px 13px;
+        font-size: 13px;
+        line-height: 1.65;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .ai-ctx-msg.system {
+        background: rgba(147, 51, 234, 0.08);
+        border: 1px solid rgba(147, 51, 234, 0.2);
+      }
+      .ai-ctx-msg.summary {
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.22);
+      }
+      .ai-ctx-msg.user {
+        background: rgba(99, 153, 218, 0.1);
+        border: 1px solid rgba(99, 153, 218, 0.25);
+      }
+      .ai-ctx-msg.assistant {
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+      }
+      .ai-ctx-msg-role {
+        font-weight: 700;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 4px;
+        opacity: 0.65;
+      }
+      .ai-ctx-summary-badge {
+        display: inline-block;
+        font-size: 11px;
+        padding: 1px 7px;
+        border-radius: 20px;
+        background: rgba(16, 185, 129, 0.15);
+        color: #065f46;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        margin-bottom: 6px;
+      }
+      .ai-md blockquote {
+        border-left: 3px solid rgba(79, 143, 216, 0.5);
+        padding-left: 10px;
+        margin: 6px 0;
+        color: var(--muted);
+      }
       /* 多会话布局 */
-      .ai-chat-layout { display:flex; gap:0; align-items:flex-start; }
+      .ai-chat-layout {
+        display: flex;
+        gap: 0;
+        align-items: flex-start;
+      }
       .ai-sessions-panel {
-        width: 188px; flex-shrink: 0;
-        display: flex; flex-direction: column; gap: 4px;
-        border-right: 1px solid rgba(148,163,184,.2);
-        padding-right: 10px; margin-right: 12px;
-        max-height: calc(65vh + 44px); overflow-y: auto;
-        transition: width .2s, opacity .2s, padding .2s, margin .2s;
+        width: 188px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        border-right: 1px solid rgba(148, 163, 184, 0.2);
+        padding-right: 10px;
+        margin-right: 12px;
+        max-height: calc(65vh + 44px);
+        overflow-y: auto;
+        transition:
+          width 0.2s,
+          opacity 0.2s,
+          padding 0.2s,
+          margin 0.2s;
       }
       .ai-sessions-panel.collapsed {
-        width: 0; opacity: 0; overflow: hidden;
-        padding-right: 0; margin-right: 0; border-right: none;
+        width: 0;
+        opacity: 0;
+        overflow: hidden;
+        padding-right: 0;
+        margin-right: 0;
+        border-right: none;
       }
       .ai-sessions-new-btn {
-        width: 100%; text-align: left; background: rgba(99,153,218,.1);
-        border: 1px dashed rgba(99,153,218,.4); border-radius: 10px;
-        padding: 6px 10px; font-size: 13px; color: var(--primary);
-        cursor: pointer; flex-shrink: 0;
+        width: 100%;
+        text-align: left;
+        background: rgba(99, 153, 218, 0.1);
+        border: 1px dashed rgba(99, 153, 218, 0.4);
+        border-radius: 10px;
+        padding: 6px 10px;
+        font-size: 13px;
+        color: var(--primary);
+        cursor: pointer;
+        flex-shrink: 0;
       }
-      .ai-sessions-new-btn:hover { background: rgba(99,153,218,.2); }
+      .ai-sessions-new-btn:hover {
+        background: rgba(99, 153, 218, 0.2);
+      }
       .ai-session-item {
-        cursor: pointer; padding: 7px 8px; border-radius: 10px;
-        display: flex; align-items: flex-start; gap: 4px;
-        border: 1px solid transparent; flex-shrink: 0;
+        cursor: pointer;
+        padding: 7px 8px;
+        border-radius: 10px;
+        display: flex;
+        align-items: flex-start;
+        gap: 4px;
+        border: 1px solid transparent;
+        flex-shrink: 0;
       }
-      .ai-session-item:hover { background: rgba(99,153,218,.1); }
-      .ai-session-item.active { background: rgba(99,153,218,.15); border-color: rgba(99,153,218,.35); }
-      .ai-session-info { flex: 1; min-width: 0; }
-      .ai-session-title { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .ai-session-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+      .ai-session-item:hover {
+        background: rgba(99, 153, 218, 0.1);
+      }
+      .ai-session-item.active {
+        background: rgba(99, 153, 218, 0.15);
+        border-color: rgba(99, 153, 218, 0.35);
+      }
+      .ai-session-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .ai-session-title {
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .ai-session-date {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
       .ai-session-del {
-        background: none; border: none; cursor: pointer; color: var(--muted);
-        font-size: 14px; line-height: 1; padding: 1px 3px; border-radius: 4px; flex-shrink: 0;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1;
+        padding: 1px 3px;
+        border-radius: 4px;
+        flex-shrink: 0;
         opacity: 0;
       }
-      .ai-session-item:hover .ai-session-del { opacity: 1; }
-      .ai-session-del:hover { background: rgba(239,68,68,.12); color: #b91c1c; }
+      .ai-session-item:hover .ai-session-del {
+        opacity: 1;
+      }
+      .ai-session-del:hover {
+        background: rgba(239, 68, 68, 0.12);
+        color: #b91c1c;
+      }
       /* 折叠按钮 */
       .ai-sessions-toggle {
-        background: none; border: none; cursor: pointer; color: var(--muted);
-        font-size: 13px; padding: 2px 5px; border-radius: 6px; line-height: 1; flex-shrink: 0;
-        transition: transform .2s;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--muted);
+        font-size: 13px;
+        padding: 2px 5px;
+        border-radius: 6px;
+        line-height: 1;
+        flex-shrink: 0;
+        transition: transform 0.2s;
       }
-      .ai-sessions-toggle:hover { background: rgba(99,153,218,.1); color: var(--primary); }
-      .ai-sessions-toggle.collapsed { transform: rotate(180deg); }
-      .ai-chat-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+      .ai-sessions-toggle:hover {
+        background: rgba(99, 153, 218, 0.1);
+        color: var(--primary);
+      }
+      .ai-sessions-toggle.collapsed {
+        transform: rotate(180deg);
+      }
+      .ai-chat-main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+      }
       /* 小屏 */
       @media (max-width: 640px) {
-        .ai-chat-layout { flex-direction: column; }
-        .ai-sessions-panel { width: 100%; max-height: 110px; border-right: none;
-          border-bottom: 1px solid rgba(148,163,184,.2); padding: 0 0 8px; margin: 0 0 10px; }
-        .ai-sessions-panel.collapsed { width: 100%; max-height: 0; padding: 0; margin: 0; border: none; }
+        .ai-chat-layout {
+          flex-direction: column;
+        }
+        .ai-sessions-panel {
+          width: 100%;
+          max-height: 110px;
+          border-right: none;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+          padding: 0 0 8px;
+          margin: 0 0 10px;
+        }
+        .ai-sessions-panel.collapsed {
+          width: 100%;
+          max-height: 0;
+          padding: 0;
+          margin: 0;
+          border: none;
+        }
       }
       .ai-chat-input-row {
         display: flex;
@@ -13550,30 +13905,34 @@
         width: 40px;
         height: 40px;
         border-radius: 12px;
-        background: rgba(255,255,255,.6);
-        border: 1px solid rgba(148,163,184,.25);
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.25);
         cursor: pointer;
         font-size: 22px;
         font-weight: 400;
         color: #4f8fd8;
-        transition: .18s ease;
+        transition: 0.18s ease;
         line-height: 1;
       }
-      .ai-upload-btn:hover { background: rgba(255,255,255,.9); }
+      .ai-upload-btn:hover {
+        background: rgba(255, 255, 255, 0.9);
+      }
       .ai-upload-menu {
         display: none;
         position: absolute;
         bottom: calc(100% + 6px);
         left: 0;
-        background: rgba(255,255,255,.96);
-        border: 1px solid rgba(148,163,184,.28);
+        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid rgba(148, 163, 184, 0.28);
         border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(86,111,145,.18);
+        box-shadow: 0 8px 24px rgba(86, 111, 145, 0.18);
         min-width: 130px;
         overflow: hidden;
         z-index: 50;
       }
-      .ai-upload-menu.open { display: block; }
+      .ai-upload-menu.open {
+        display: block;
+      }
       .ai-upload-menu-item {
         display: block;
         width: 100%;
@@ -13584,20 +13943,38 @@
         background: transparent;
         border: 0;
         cursor: pointer;
-        transition: .14s ease;
+        transition: 0.14s ease;
       }
-      .ai-upload-menu-item:hover { background: rgba(79,143,216,.1); }
+      .ai-upload-menu-item:hover {
+        background: rgba(79, 143, 216, 0.1);
+      }
 
       [data-theme="dark"] .ai-ext-card {
-        background: rgba(255,255,255,.06);
-        border-color: rgba(255,255,255,.1);
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.1);
       }
-      [data-theme="dark"] .ai-ext-card:hover { background: rgba(255,255,255,.12); }
-      [data-theme="dark"] .ai-chat-box { background: rgba(0,0,0,.15); border-color: rgba(255,255,255,.1); }
-      [data-theme="dark"] .ai-chat-bubble.assistant .ai-chat-content { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.12); }
-      [data-theme="dark"] .ai-upload-btn { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.12); }
-      [data-theme="dark"] .ai-upload-menu { background: #2a3a50; border-color: rgba(255,255,255,.12); }
-      [data-theme="dark"] .ai-upload-menu-item { color: #c8d8f0; }
+      [data-theme="dark"] .ai-ext-card:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      [data-theme="dark"] .ai-chat-box {
+        background: rgba(0, 0, 0, 0.15);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+      [data-theme="dark"] .ai-chat-bubble.assistant .ai-chat-content {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+      [data-theme="dark"] .ai-upload-btn {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+      [data-theme="dark"] .ai-upload-menu {
+        background: #2a3a50;
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+      [data-theme="dark"] .ai-upload-menu-item {
+        color: #c8d8f0;
+      }
 
       @media (max-width: 980px) {
         .app-shell {
@@ -13757,7 +14134,9 @@
             <span class="nav-icon">⚙</span><span>设置</span>
           </button>
         </nav>
-        <div class="notice small">所有数据仅保存在当前浏览器 localStorage 的一个应用状态键中。</div>
+        <div class="notice small">
+          所有数据仅保存在当前浏览器 localStorage 的一个应用状态键中。
+        </div>
       </aside>
 
       <main class="main">
@@ -13895,15 +14274,30 @@
             <div class="card">
               <div
                 class="btn-row"
-                style="justify-content: space-between; margin-bottom: 6px; flex-wrap: nowrap; gap: 6px; align-items: center"
+                style="
+                  justify-content: space-between;
+                  margin-bottom: 6px;
+                  flex-wrap: nowrap;
+                  gap: 6px;
+                  align-items: center;
+                "
               >
                 <h3 style="margin: 0; white-space: nowrap">学习趋势</h3>
-                <div style="display: flex; gap: 6px; flex-shrink: 0; align-items: center">
+                <div
+                  style="
+                    display: flex;
+                    gap: 6px;
+                    flex-shrink: 0;
+                    align-items: center;
+                  "
+                >
                   <select id="dailySubjectFilter" style="min-width: 100px">
                     <option value="all">全部科目</option>
                   </select>
                   <div style="display: flex; gap: 5px">
-                    <button class="tab-chip active" data-range="7">近 7 天</button>
+                    <button class="tab-chip active" data-range="7">
+                      近 7 天
+                    </button>
                     <button class="tab-chip" data-range="30">近 30 天</button>
                   </div>
                 </div>
@@ -13924,7 +14318,13 @@
             <div class="card">
               <div
                 class="btn-row"
-                style="justify-content: space-between; margin-bottom: 6px; flex-wrap: nowrap; gap: 6px; align-items: center"
+                style="
+                  justify-content: space-between;
+                  margin-bottom: 6px;
+                  flex-wrap: nowrap;
+                  gap: 6px;
+                  align-items: center;
+                "
               >
                 <h3 style="margin: 0; white-space: nowrap">正确率对比</h3>
                 <div style="display: flex; gap: 6px; flex-shrink: 0">
@@ -13942,7 +14342,13 @@
           <div class="card" style="margin-top: 10px">
             <div
               class="btn-row"
-              style="justify-content: space-between; margin-bottom: 6px; flex-wrap: nowrap; gap: 6px; align-items: center"
+              style="
+                justify-content: space-between;
+                margin-bottom: 6px;
+                flex-wrap: nowrap;
+                gap: 6px;
+                align-items: center;
+              "
             >
               <h3 style="margin: 0; white-space: nowrap">错题新增趋势</h3>
               <div style="display: flex; gap: 6px; flex-shrink: 0">
@@ -14015,7 +14421,9 @@
                   保存时长
                 </button>
               </div>
-              <div class="notice small" style="margin-top: 12px">专注结束会自动播放提示音，并把本轮专注时长记入所选科目；休息时间不计入学习。倒计时提前完成或正向计时手动结束时，都可以点击"结束并记录"。</div>
+              <div class="notice small" style="margin-top: 12px">
+                专注结束会自动播放提示音，并把本轮专注时长记入所选科目；休息时间不计入学习。倒计时提前完成或正向计时手动结束时，都可以点击"结束并记录"。
+              </div>
             </div>
           </div>
           <div class="grid grid-3" style="margin-top: 14px">
@@ -14071,6 +14479,18 @@
           <div class="card" style="margin-top: 16px">
             <h3>其他计划</h3>
             <div class="list" id="otherPlans"></div>
+          </div>
+          <div class="card" style="margin-top: 16px">
+            <div
+              class="btn-row"
+              style="justify-content: space-between; margin-bottom: 12px"
+            >
+              <h3 style="margin: 0">长期计划</h3>
+              <button class="btn primary" id="addLongTermPlanBtn">
+                新增阶段
+              </button>
+            </div>
+            <div id="longTermPlansList"></div>
           </div>
         </section>
 
@@ -14314,41 +14734,92 @@
 
         <section class="section" id="section-ai">
           <!-- 其他AI跳转 -->
-          <div class="card" style="margin-bottom:14px">
-            <h3 style="margin:0 0 12px">其他 AI 工具</h3>
+          <div class="card" style="margin-bottom: 14px">
+            <h3 style="margin: 0 0 12px">其他 AI 工具</h3>
             <div class="ai-ext-grid">
-              <a class="ai-ext-card" href="https://chat.deepseek.com/" target="_blank" rel="noopener">
+              <a
+                class="ai-ext-card"
+                href="https://chat.deepseek.com/"
+                target="_blank"
+                rel="noopener"
+              >
                 <span class="ai-ext-icon">🐋</span>
-                <span class="ai-ext-info"><span class="ai-ext-name">DeepSeek</span><span class="ai-ext-desc">深度求索</span></span>
+                <span class="ai-ext-info"
+                  ><span class="ai-ext-name">DeepSeek</span
+                  ><span class="ai-ext-desc">深度求索</span></span
+                >
               </a>
-              <a class="ai-ext-card" href="https://yuanbao.tencent.com/" target="_blank" rel="noopener">
+              <a
+                class="ai-ext-card"
+                href="https://yuanbao.tencent.com/"
+                target="_blank"
+                rel="noopener"
+              >
                 <span class="ai-ext-icon">💎</span>
-                <span class="ai-ext-info"><span class="ai-ext-name">腾讯元宝</span><span class="ai-ext-desc">腾讯 AI</span></span>
+                <span class="ai-ext-info"
+                  ><span class="ai-ext-name">腾讯元宝</span
+                  ><span class="ai-ext-desc">腾讯 AI</span></span
+                >
               </a>
-              <a class="ai-ext-card" href="https://www.doubao.com/" target="_blank" rel="noopener">
+              <a
+                class="ai-ext-card"
+                href="https://www.doubao.com/"
+                target="_blank"
+                rel="noopener"
+              >
                 <span class="ai-ext-icon">🫘</span>
-                <span class="ai-ext-info"><span class="ai-ext-name">豆包</span><span class="ai-ext-desc">字节跳动</span></span>
+                <span class="ai-ext-info"
+                  ><span class="ai-ext-name">豆包</span
+                  ><span class="ai-ext-desc">字节跳动</span></span
+                >
               </a>
-              <a class="ai-ext-card" href="https://www.kimi.com/" target="_blank" rel="noopener">
+              <a
+                class="ai-ext-card"
+                href="https://www.kimi.com/"
+                target="_blank"
+                rel="noopener"
+              >
                 <span class="ai-ext-icon">🌙</span>
-                <span class="ai-ext-info"><span class="ai-ext-name">Kimi</span><span class="ai-ext-desc">月之暗面</span></span>
+                <span class="ai-ext-info"
+                  ><span class="ai-ext-name">Kimi</span
+                  ><span class="ai-ext-desc">月之暗面</span></span
+                >
               </a>
             </div>
           </div>
           <!-- 内置AI聊天 -->
           <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-              <div style="display:flex;align-items:center;gap:8px">
-                <button class="ai-sessions-toggle" id="aiSessionsToggle" title="折叠/展开对话列表">◀</button>
-                <h3 style="margin:0">内置 AI 解答</h3>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+                flex-wrap: wrap;
+                gap: 8px;
+              "
+            >
+              <div style="display: flex; align-items: center; gap: 8px">
+                <button
+                  class="ai-sessions-toggle"
+                  id="aiSessionsToggle"
+                  title="折叠/展开对话列表"
+                >
+                  ◀
+                </button>
+                <h3 style="margin: 0">内置 AI 解答</h3>
               </div>
-              <button class="btn small-btn danger" id="aiChatClearBtn">清空当前对话</button>
+              <button class="btn small-btn danger" id="aiChatClearBtn">
+                清空当前对话
+              </button>
             </div>
             <!-- 双栏布局：左侧会话列表 + 右侧聊天主区 -->
             <div class="ai-chat-layout">
               <!-- 左侧会话列表 -->
               <div class="ai-sessions-panel" id="aiSessionsPanel">
-                <button class="ai-sessions-new-btn" id="aiNewSessionBtn">＋ 新对话</button>
+                <button class="ai-sessions-new-btn" id="aiNewSessionBtn">
+                  ＋ 新对话
+                </button>
                 <!-- 会话条目由 JS 动态渲染 -->
               </div>
               <!-- 右侧聊天主区 -->
@@ -14356,41 +14827,145 @@
                 <!-- 上下文状态栏 -->
                 <div class="ai-ctx-bar" id="aiCtxBar">
                   <span class="ai-ctx-counter" id="aiCtxCounter">0 条消息</span>
-                  <button class="ai-ctx-btn" id="aiCtxViewBtn">查看上下文</button>
-                  <button class="ai-ctx-btn" id="aiCtxCompressBtn" style="display:none">压缩对话</button>
+                  <button class="ai-ctx-btn" id="aiCtxViewBtn">
+                    查看上下文
+                  </button>
+                  <button
+                    class="ai-ctx-btn"
+                    id="aiCtxCompressBtn"
+                    style="display: none"
+                  >
+                    压缩对话
+                  </button>
                 </div>
                 <!-- 提示词选择 -->
-                <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-                  <label style="white-space:nowrap;flex-shrink:0">提示词</label>
-                  <select id="aiChatPromptSelect" style="flex:1;min-width:160px"></select>
-                  <button class="btn small-btn" id="aiChatAddPromptBtn">新增</button>
-                  <button class="btn small-btn danger" id="aiChatDelPromptBtn">删除</button>
+                <div
+                  style="
+                    display: flex;
+                    gap: 8px;
+                    align-items: center;
+                    margin-bottom: 12px;
+                    flex-wrap: wrap;
+                  "
+                >
+                  <label style="white-space: nowrap; flex-shrink: 0"
+                    >提示词</label
+                  >
+                  <select
+                    id="aiChatPromptSelect"
+                    style="flex: 1; min-width: 160px"
+                  ></select>
+                  <button class="btn small-btn" id="aiChatAddPromptBtn">
+                    新增
+                  </button>
+                  <button class="btn small-btn danger" id="aiChatDelPromptBtn">
+                    删除
+                  </button>
                 </div>
                 <!-- 对话区 -->
                 <div class="ai-chat-box" id="aiChatBox"></div>
                 <!-- 输入区 -->
                 <div class="ai-chat-input-row">
                   <div class="ai-upload-wrap">
-                    <button class="ai-upload-btn" id="aiChatUploadBtn" title="添加附件">+</button>
+                    <button
+                      class="ai-upload-btn"
+                      id="aiChatUploadBtn"
+                      title="添加附件"
+                    >
+                      +
+                    </button>
                     <div class="ai-upload-menu" id="aiChatUploadMenu">
-                      <button class="ai-upload-menu-item" id="aiChatPickImgBtn">🖼 上传图片</button>
-                      <button class="ai-upload-menu-item" id="aiChatPickFileBtn">📄 上传文件</button>
+                      <button class="ai-upload-menu-item" id="aiChatPickImgBtn">
+                        🖼 上传图片
+                      </button>
+                      <button
+                        class="ai-upload-menu-item"
+                        id="aiChatPickFileBtn"
+                      >
+                        📄 上传文件
+                      </button>
                     </div>
-                    <input type="file" id="aiChatImgInput" accept="image/*" style="display:none" />
-                    <input type="file" id="aiChatFileInput" style="display:none" />
+                    <input
+                      type="file"
+                      id="aiChatImgInput"
+                      accept="image/*"
+                      style="display: none"
+                    />
+                    <input
+                      type="file"
+                      id="aiChatFileInput"
+                      style="display: none"
+                    />
                   </div>
-                  <div style="display:flex;flex-direction:column;flex:1;gap:6px;min-width:0">
-                    <div style="display:flex;flex-wrap:wrap;gap:6px">
-                      <div id="aiChatImgPreviewWrap" style="display:none;align-items:center;gap:4px">
-                        <img id="aiChatImgPreview" style="height:36px;border-radius:8px;border:1px solid rgba(148,163,184,.3)" />
-                        <button class="btn small-btn danger" id="aiChatImgClearBtn" style="padding:2px 7px">✕</button>
+                  <div
+                    style="
+                      display: flex;
+                      flex-direction: column;
+                      flex: 1;
+                      gap: 6px;
+                      min-width: 0;
+                    "
+                  >
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px">
+                      <div
+                        id="aiChatImgPreviewWrap"
+                        style="display: none; align-items: center; gap: 4px"
+                      >
+                        <img
+                          id="aiChatImgPreview"
+                          style="
+                            height: 36px;
+                            border-radius: 8px;
+                            border: 1px solid rgba(148, 163, 184, 0.3);
+                          "
+                        />
+                        <button
+                          class="btn small-btn danger"
+                          id="aiChatImgClearBtn"
+                          style="padding: 2px 7px"
+                        >
+                          ✕
+                        </button>
                       </div>
-                      <div id="aiChatFilePreviewWrap" style="display:none;align-items:center;gap:4px">
-                        <span id="aiChatFileName" style="font-size:12px;padding:3px 8px;background:rgba(255,255,255,.7);border:1px solid rgba(148,163,184,.3);border-radius:8px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-                        <button class="btn small-btn danger" id="aiChatFileClearBtn" style="padding:2px 7px">✕</button>
+                      <div
+                        id="aiChatFilePreviewWrap"
+                        style="display: none; align-items: center; gap: 4px"
+                      >
+                        <span
+                          id="aiChatFileName"
+                          style="
+                            font-size: 12px;
+                            padding: 3px 8px;
+                            background: rgba(255, 255, 255, 0.7);
+                            border: 1px solid rgba(148, 163, 184, 0.3);
+                            border-radius: 8px;
+                            max-width: 160px;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                          "
+                        ></span>
+                        <button
+                          class="btn small-btn danger"
+                          id="aiChatFileClearBtn"
+                          style="padding: 2px 7px"
+                        >
+                          ✕
+                        </button>
                       </div>
                     </div>
-                    <textarea id="aiChatInput" rows="1" placeholder="输入问题，Ctrl+Enter 发送…" style="width:100%;resize:none;min-height:44px;max-height:300px;overflow-y:auto"></textarea>
+                    <textarea
+                      id="aiChatInput"
+                      rows="1"
+                      placeholder="输入问题，Ctrl+Enter 发送…"
+                      style="
+                        width: 100%;
+                        resize: none;
+                        min-height: 44px;
+                        max-height: 300px;
+                        overflow-y: auto;
+                      "
+                    ></textarea>
                   </div>
                   <button class="btn primary" id="aiChatSendBtn">发送</button>
                 </div>
@@ -14525,7 +15100,10 @@
                   style="display: none"
                 />
               </div>
-              <div class="notice small" style="margin-top: 12px">兼容 OpenAI / DeepSeek 的 /chat/completions 接口。若配置缺失，AI 功能会给出明确错误。</div>
+              <div class="notice small" style="margin-top: 12px">
+                兼容 OpenAI / DeepSeek 的 /chat/completions 接口。若配置缺失，AI
+                功能会给出明确错误。
+              </div>
             </div>
           </div>
         </section>
@@ -14571,6 +15149,8 @@
         planCalendarMonth: todayISO().slice(0, 7),
         selectedPlanDate: todayISO(),
         _expandedReviewKey: "",
+        _expandedLtpIds: new Set(),
+        _ltpCompletedExpanded: false,
         _reviewFilter: "all",
         _selectedReviews: new Set(),
         _subjectReviews: [],
@@ -14737,6 +15317,7 @@
           subjects,
           sessions: [],
           plans: [],
+          longTermPlans: [],
           mistakes: [],
           reviews: {},
           settings: {
@@ -14769,6 +15350,9 @@
             sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
             plans: Array.isArray(parsed.plans)
               ? parsed.plans.map(normalizePlan)
+              : [],
+            longTermPlans: Array.isArray(parsed.longTermPlans)
+              ? parsed.longTermPlans
               : [],
             mistakes: Array.isArray(parsed.mistakes)
               ? parsed.mistakes.map(normalizeMistake)
@@ -14951,6 +15535,7 @@
         renderDashboard();
         renderTimer();
         renderPlans();
+        renderLongTermPlans();
         renderMistakes();
         renderReviews();
         renderSettings();
@@ -15018,7 +15603,8 @@
           `${Math.round(weekMinutes)} / ${weeklyGoal} 分钟`;
         $("smartReminder").textContent = buildLocalReminder();
         const savedAiReminder = localStorage.getItem("aiDashboardReminder");
-        if (savedAiReminder) $("dashboardAiResult").textContent = savedAiReminder;
+        if (savedAiReminder)
+          $("dashboardAiResult").textContent = savedAiReminder;
         renderCharts();
       }
 
@@ -15166,8 +15752,14 @@
               );
               return {
                 label: subject.name,
-                total: mistakes.reduce((s, m) => s + (Number(m.totalQuestions) || 0), 0),
-                wrong: mistakes.reduce((s, m) => s + (Number(m.wrongQuestions) || 0), 0),
+                total: mistakes.reduce(
+                  (s, m) => s + (Number(m.totalQuestions) || 0),
+                  0,
+                ),
+                wrong: mistakes.reduce(
+                  (s, m) => s + (Number(m.wrongQuestions) || 0),
+                  0,
+                ),
                 color: subject.color,
               };
             });
@@ -15179,8 +15771,14 @@
             );
             return {
               label: type,
-              total: mistakes.reduce((s, m) => s + (Number(m.totalQuestions) || 0), 0),
-              wrong: mistakes.reduce((s, m) => s + (Number(m.wrongQuestions) || 0), 0),
+              total: mistakes.reduce(
+                (s, m) => s + (Number(m.totalQuestions) || 0),
+                0,
+              ),
+              wrong: mistakes.reduce(
+                (s, m) => s + (Number(m.wrongQuestions) || 0),
+                0,
+              ),
               color: subject.color,
             };
           });
@@ -15193,8 +15791,14 @@
         return [
           {
             label: `${subject.name}-${typeFilter}`,
-            total: mistakes.reduce((s, m) => s + (Number(m.totalQuestions) || 0), 0),
-            wrong: mistakes.reduce((s, m) => s + (Number(m.wrongQuestions) || 0), 0),
+            total: mistakes.reduce(
+              (s, m) => s + (Number(m.totalQuestions) || 0),
+              0,
+            ),
+            wrong: mistakes.reduce(
+              (s, m) => s + (Number(m.wrongQuestions) || 0),
+              0,
+            ),
             color: subject.color,
           },
         ];
@@ -16030,6 +16634,175 @@
           saveState();
           closeModal();
           renderAll();
+        };
+      }
+
+      // ── 长期计划 ───────────────────────────────────────────────────────────
+
+      function ltpProgress(startDate, endDate) {
+        const today = todayISO();
+        if (today <= startDate) return 0;
+        if (today >= endDate) return 100;
+        const total = new Date(endDate) - new Date(startDate);
+        const elapsed = new Date(today) - new Date(startDate);
+        return Math.max(0, Math.min(100, Math.round((elapsed / total) * 100)));
+      }
+
+      function renderLtpSpItem(sp, ltpId) {
+        const pct = sp.completed ? 100 : ltpProgress(sp.startDate, sp.endDate);
+        const noteHtml = sp.note
+          ? `<div class="small muted" style="margin-top:2px;">${escapeHtml(sp.note)}</div>`
+          : "";
+        return `
+          <div class="ltp-sp-item${sp.completed ? " completed" : ""}">
+            <div style="flex:1;min-width:0;">
+              <div class="tag-row" style="margin-bottom:3px;">${subjectPill(sp.subjectId)}<span class="tag">${escapeHtml(sp.startDate)} → ${escapeHtml(sp.endDate)}</span></div>
+              ${noteHtml}
+              <div class="ltp-progress-bar" style="margin-top:5px;"><div class="ltp-progress-fill" style="width:${pct}%"></div></div>
+            </div>
+            <div class="item-actions" style="flex-shrink:0;">
+              <label class="check-row small"><input type="checkbox" data-sp-toggle="${escapeHtml(sp.id)}" data-ltp-id="${escapeHtml(ltpId)}" ${sp.completed ? "checked" : ""}/>完成</label>
+              <button class="btn" data-sp-edit="${escapeHtml(sp.id)}" data-ltp-id="${escapeHtml(ltpId)}">编辑</button>
+              <button class="btn danger" data-sp-delete="${escapeHtml(sp.id)}" data-ltp-id="${escapeHtml(ltpId)}">删除</button>
+            </div>
+          </div>`;
+      }
+
+      function renderLtpCard(ltp) {
+        const expanded = app._expandedLtpIds.has(ltp.id);
+        const pct = ltp.completed ? 100 : ltpProgress(ltp.startDate, ltp.endDate);
+        const noteHtml = ltp.note
+          ? `<div class="ltp-note">${escapeHtml(ltp.note)}</div>`
+          : "";
+        const bodyHtml = expanded
+          ? `<div class="ltp-body">
+               ${noteHtml}
+               <div class="ltp-progress-bar" style="margin-bottom:8px;"><div class="ltp-progress-fill" style="width:${pct}%;"></div></div>
+               ${
+                 (ltp.subjectPlans || []).length
+                   ? (ltp.subjectPlans || []).map((sp) => renderLtpSpItem(sp, ltp.id)).join("")
+                   : '<div class="muted small">暂无科目排期</div>'
+               }
+               <div style="margin-top:8px;">
+                 <button class="btn" data-add-sp="${escapeHtml(ltp.id)}" style="font-size:0.82rem;">+ 添加科目排期</button>
+               </div>
+             </div>`
+          : "";
+        return `
+          <div class="ltp-card${ltp.completed ? " completed" : ""}">
+            <div class="ltp-card-head">
+              <div style="flex:1;min-width:0;cursor:pointer;" data-ltp-expand="${escapeHtml(ltp.id)}">
+                <span class="ltp-toggle-btn">${expanded ? "▲" : "▼"}</span>
+                <span class="ltp-title${ltp.completed ? " strike" : ""}">${escapeHtml(ltp.title)}</span>
+                <div class="ltp-date-range">${escapeHtml(ltp.startDate)} → ${escapeHtml(ltp.endDate)}</div>
+              </div>
+              <div class="item-actions" style="flex-shrink:0;">
+                <label class="check-row small"><input type="checkbox" data-ltp-toggle="${escapeHtml(ltp.id)}" ${ltp.completed ? "checked" : ""}/>完成</label>
+                <button class="btn" data-ltp-edit="${escapeHtml(ltp.id)}">编辑</button>
+                <button class="btn danger" data-ltp-delete="${escapeHtml(ltp.id)}">删除</button>
+              </div>
+            </div>
+            ${bodyHtml}
+          </div>`;
+      }
+
+      function renderLongTermPlans() {
+        const container = $("longTermPlansList");
+        if (!container) return;
+        const all = app.state.longTermPlans || [];
+        const active = all.filter((p) => !p.completed);
+        const done = all.filter((p) => p.completed);
+        let html = "";
+        if (!active.length && !done.length) {
+          html = '<div class="muted small">暂无长期计划，点击“新增阶段”开始规划。</div>';
+        } else {
+          active.forEach((ltp) => { html += renderLtpCard(ltp); });
+          if (done.length) {
+            const exp = app._ltpCompletedExpanded;
+            html += `<div class="ltp-completed-section-head" data-ltp-completed-toggle="1">
+              ${exp ? "▲" : "▼"} 已完成（${done.length}）
+            </div>`;
+            if (exp) done.forEach((ltp) => { html += renderLtpCard(ltp); });
+          }
+        }
+        container.innerHTML = html;
+      }
+
+      function openLongTermPlanModal(ltpId = "") {
+        const ltp = (app.state.longTermPlans || []).find((p) => p.id === ltpId) || {
+          title: "", startDate: todayISO(), endDate: todayISO(), note: "", completed: false, subjectPlans: [],
+        };
+        openModal(
+          ltpId ? "编辑阶段计划" : "新增阶段计划",
+          `<div class="field"><label for="ltpTitleInput">阶段名称</label><input id="ltpTitleInput" value="${escapeHtml(ltp.title)}" /></div>
+           <div class="form-row">
+             <div class="field"><label for="ltpStartInput">开始日期</label><input type="date" id="ltpStartInput" value="${escapeHtml(ltp.startDate)}" /></div>
+             <div class="field"><label for="ltpEndInput">结束日期</label><input type="date" id="ltpEndInput" value="${escapeHtml(ltp.endDate)}" /></div>
+           </div>
+           <div class="field"><label for="ltpNoteInput">备注（选填）</label><input id="ltpNoteInput" value="${escapeHtml(ltp.note)}" /></div>
+           <label class="check-row"><input type="checkbox" id="ltpCompletedInput" ${ltp.completed ? "checked" : ""}/>已完成</label>
+           <div class="btn-row" style="margin-top:14px;"><button class="btn primary" id="saveLtpModalBtn">保存</button></div>`,
+        );
+        $("saveLtpModalBtn").onclick = () => {
+          const title = $("ltpTitleInput").value.trim();
+          if (!title) { alert("请输入阶段名称。"); return; }
+          const payload = {
+            title,
+            startDate: $("ltpStartInput").value || todayISO(),
+            endDate: $("ltpEndInput").value || todayISO(),
+            note: $("ltpNoteInput").value.trim(),
+            completed: $("ltpCompletedInput").checked,
+          };
+          if (ltpId) {
+            const existing = (app.state.longTermPlans || []).find((p) => p.id === ltpId);
+            if (existing) Object.assign(existing, payload);
+          } else {
+            if (!app.state.longTermPlans) app.state.longTermPlans = [];
+            app.state.longTermPlans.push({ id: uid("ltp"), subjectPlans: [], ...payload });
+          }
+          saveState();
+          closeModal();
+          renderLongTermPlans();
+        };
+      }
+
+      function openSubjectPlanModal(ltpId, spId = "") {
+        const ltp = (app.state.longTermPlans || []).find((p) => p.id === ltpId);
+        if (!ltp) return;
+        const sp = (ltp.subjectPlans || []).find((s) => s.id === spId) || {
+          subjectId: "", startDate: ltp.startDate, endDate: ltp.endDate, note: "", completed: false,
+        };
+        openModal(
+          spId ? "编辑科目排期" : "添加科目排期",
+          `<div class="field"><label for="spSubjectInput">科目</label><select id="spSubjectInput"></select></div>
+           <div class="form-row">
+             <div class="field"><label for="spStartInput">开始日期</label><input type="date" id="spStartInput" value="${escapeHtml(sp.startDate)}" /></div>
+             <div class="field"><label for="spEndInput">结束日期</label><input type="date" id="spEndInput" value="${escapeHtml(sp.endDate)}" /></div>
+           </div>
+           <div class="field"><label for="spNoteInput">备注（选填）</label><input id="spNoteInput" value="${escapeHtml(sp.note)}" /></div>
+           <label class="check-row"><input type="checkbox" id="spCompletedInput" ${sp.completed ? "checked" : ""}/>已完成</label>
+           <div class="btn-row" style="margin-top:14px;"><button class="btn primary" id="saveSpModalBtn">保存</button></div>`,
+        );
+        populateSubjectSelect($("spSubjectInput"), { includeEmpty: true });
+        $("spSubjectInput").value = sp.subjectId;
+        $("saveSpModalBtn").onclick = () => {
+          const payload = {
+            subjectId: $("spSubjectInput").value,
+            startDate: $("spStartInput").value || ltp.startDate,
+            endDate: $("spEndInput").value || ltp.endDate,
+            note: $("spNoteInput").value.trim(),
+            completed: $("spCompletedInput").checked,
+          };
+          if (!ltp.subjectPlans) ltp.subjectPlans = [];
+          if (spId) {
+            const existing = ltp.subjectPlans.find((s) => s.id === spId);
+            if (existing) Object.assign(existing, payload);
+          } else {
+            ltp.subjectPlans.push({ id: uid("lsp"), ...payload });
+          }
+          saveState();
+          closeModal();
+          renderLongTermPlans();
         };
       }
 
@@ -17147,6 +17920,9 @@
               plans: Array.isArray(data.plans)
                 ? data.plans.map(normalizePlan)
                 : [],
+              longTermPlans: Array.isArray(data.longTermPlans)
+                ? data.longTermPlans
+                : [],
               mistakes: Array.isArray(data.mistakes)
                 ? data.mistakes.map(normalizeMistake)
                 : [],
@@ -17337,8 +18113,18 @@
 
           const fieldLabels =
             mode === "weekly"
-              ? { done: "本周完成情况", problems: "本周主要问题", actions: "下周改进重点", tomorrow: "下周重点计划" }
-              : { done: "今日完成情况", problems: "困难与不足", actions: "改进措施", tomorrow: "明日重点" };
+              ? {
+                  done: "本周完成情况",
+                  problems: "本周主要问题",
+                  actions: "下周改进重点",
+                  tomorrow: "下周重点计划",
+                }
+              : {
+                  done: "今日完成情况",
+                  problems: "困难与不足",
+                  actions: "改进措施",
+                  tomorrow: "明日重点",
+                };
 
           const systemPrompt =
             `你是公务员考试备考教练。请基于数据生成复盘，只输出 JSON，不要输出其他内容。` +
@@ -17357,14 +18143,23 @@
           // 尝试解析 JSON（兼容 AI 用 ```json 包裹的情况）
           let parsed = null;
           try {
-            const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
+            const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [
+              null,
+              content,
+            ];
             parsed = JSON.parse(jsonMatch[1].trim());
           } catch (_) {}
 
-          if (parsed && (parsed.done || parsed.problems || parsed.actions || parsed.tomorrow)) {
-            if (parsed.done)     $("reviewDone").value     = parsed.done;
+          if (
+            parsed &&
+            (parsed.done ||
+              parsed.problems ||
+              parsed.actions ||
+              parsed.tomorrow)
+          ) {
+            if (parsed.done) $("reviewDone").value = parsed.done;
             if (parsed.problems) $("reviewProblems").value = parsed.problems;
-            if (parsed.actions)  $("reviewActions").value  = parsed.actions;
+            if (parsed.actions) $("reviewActions").value = parsed.actions;
             if (parsed.tomorrow) $("reviewTomorrow").value = parsed.tomorrow;
 
             // 纯文本区域显示可读版本供复制/导出
@@ -17483,13 +18278,22 @@
       const AI_CHAT_PROMPTS_KEY = "aiChatPrompts";
 
       const DEFAULT_PROMPTS = [
-        { id: "civil", name: "考公解题助手", text: "你是一名专业的公务员考试辅导老师，熟悉行测、申论等各科目。请根据用户的题目或问题，给出清晰、准确的解题思路和答案。若用户上传了图片，请结合图片内容作答。" },
+        {
+          id: "civil",
+          name: "考公解题助手",
+          text: "你是一名专业的公务员考试辅导老师，熟悉行测、申论等各科目。请根据用户的题目或问题，给出清晰、准确的解题思路和答案。若用户上传了图片，请结合图片内容作答。",
+        },
+        {
+          id: "kaoyan",
+          name: "张氏定制",
+          text: "你是一名专业的199管理综合考研辅导老师，熟悉数学，英语二，逻辑及写作。请根据用户的题目或问题，给出清晰，准确的解题思路和答案；涉及记忆性内容时给出便于记忆的口诀或框架；若用户上传了图片，请结合图片内容作答。",
+        },
         { id: "none", name: "无提示词（通用）", text: "" },
       ];
 
-      let aiChatHistory = [];       // 当前会话的消息列表（工作副本）
-      let aiChatSummary = "";       // 当前会话的压缩摘要（工作副本）
-      let aiSessions = [];          // 所有会话
+      let aiChatHistory = []; // 当前会话的消息列表（工作副本）
+      let aiChatSummary = ""; // 当前会话的压缩摘要（工作副本）
+      let aiSessions = []; // 所有会话
       let aiCurrentSessionId = null;
       let aiChatImageDataUrl = null;
       let aiChatFileData = null;
@@ -17499,7 +18303,7 @@
         try {
           const saved = JSON.parse(localStorage.getItem(AI_CHAT_SESSIONS_KEY));
           if (Array.isArray(saved) && saved.length) return saved;
-        } catch(_) {}
+        } catch (_) {}
         return [];
       }
 
@@ -17508,13 +18312,16 @@
       }
 
       function saveCurrentSession() {
-        const s = aiSessions.find(s => s.id === aiCurrentSessionId);
+        const s = aiSessions.find((s) => s.id === aiCurrentSessionId);
         if (!s) return;
         // 图片 base64 不持久化，剥离 image_url
-        s.history = aiChatHistory.map(m => {
+        s.history = aiChatHistory.map((m) => {
           if (!Array.isArray(m.content)) return m;
-          const stripped = m.content.filter(p => p.type !== "image_url");
-          return { ...m, content: stripped.length === 1 ? stripped[0].text : stripped };
+          const stripped = m.content.filter((p) => p.type !== "image_url");
+          return {
+            ...m,
+            content: stripped.length === 1 ? stripped[0].text : stripped,
+          };
         });
         s.summary = aiChatSummary;
         saveSessions();
@@ -17526,7 +18333,7 @@
       }
 
       function updateSessionTitle(userText) {
-        const s = aiSessions.find(s => s.id === aiCurrentSessionId);
+        const s = aiSessions.find((s) => s.id === aiCurrentSessionId);
         if (s && s.title === "新对话" && userText) {
           s.title = getSessionTitleFromText(userText);
         }
@@ -17537,7 +18344,13 @@
         // 上限 50 个，超出删最老
         if (aiSessions.length >= 50) aiSessions.pop();
         const id = "sess_" + Date.now();
-        aiSessions.unshift({ id, title: "新对话", createdAt: Date.now(), history: [], summary: "" });
+        aiSessions.unshift({
+          id,
+          title: "新对话",
+          createdAt: Date.now(),
+          history: [],
+          summary: "",
+        });
         aiCurrentSessionId = id;
         aiChatHistory = [];
         aiChatSummary = "";
@@ -17550,7 +18363,7 @@
       function switchSession(id) {
         if (id === aiCurrentSessionId) return;
         saveCurrentSession();
-        const s = aiSessions.find(s => s.id === id);
+        const s = aiSessions.find((s) => s.id === id);
         if (!s) return;
         aiCurrentSessionId = id;
         aiChatHistory = s.history ? [...s.history] : [];
@@ -17562,7 +18375,7 @@
 
       function deleteSession(id) {
         if (!confirm("确定删除此对话吗？")) return;
-        aiSessions = aiSessions.filter(s => s.id !== id);
+        aiSessions = aiSessions.filter((s) => s.id !== id);
         saveSessions();
         if (!aiSessions.length) {
           createNewSession();
@@ -17581,15 +18394,19 @@
 
       function renderSessionList() {
         const panel = $("aiSessionsPanel");
-        panel.querySelectorAll(".ai-session-item").forEach(el => el.remove());
-        aiSessions.forEach(s => {
+        panel.querySelectorAll(".ai-session-item").forEach((el) => el.remove());
+        aiSessions.forEach((s) => {
           const item = document.createElement("div");
-          item.className = "ai-session-item" + (s.id === aiCurrentSessionId ? " active" : "");
+          item.className =
+            "ai-session-item" + (s.id === aiCurrentSessionId ? " active" : "");
           const d = new Date(s.createdAt);
-          const dateStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,"0")}`;
-          item.innerHTML = `<div class="ai-session-info"><div class="ai-session-title">${s.title.replace(/</g,"&lt;")}</div><div class="ai-session-date">${dateStr}</div></div><button class="ai-session-del" data-del="${s.id}" title="删除">×</button>`;
+          const dateStr = `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
+          item.innerHTML = `<div class="ai-session-info"><div class="ai-session-title">${s.title.replace(/</g, "&lt;")}</div><div class="ai-session-date">${dateStr}</div></div><button class="ai-session-del" data-del="${s.id}" title="删除">×</button>`;
           item.addEventListener("click", (e) => {
-            if (e.target.dataset.del) { deleteSession(e.target.dataset.del); return; }
+            if (e.target.dataset.del) {
+              deleteSession(e.target.dataset.del);
+              return;
+            }
             switchSession(s.id);
           });
           panel.appendChild(item);
@@ -17602,23 +18419,28 @@
         if (!session || !session.history) return;
         if (session.summary) {
           const notice = document.createElement("div");
-          notice.style.cssText = "text-align:center;font-size:12px;color:var(--muted);margin:4px 0 6px;padding:4px 12px;background:rgba(16,185,129,.08);border-radius:20px;border:1px solid rgba(16,185,129,.2)";
+          notice.style.cssText =
+            "text-align:center;font-size:12px;color:var(--muted);margin:4px 0 6px;padding:4px 12px;background:rgba(16,185,129,.08);border-radius:20px;border:1px solid rgba(16,185,129,.2)";
           notice.textContent = "✦ 含已压缩的历史摘要";
           box.appendChild(notice);
         }
-        session.history.forEach(msg => {
+        session.history.forEach((msg) => {
           if (msg.role === "user") {
-            let text = "", imgUrl = null;
+            let text = "",
+              imgUrl = null;
             if (typeof msg.content === "string") {
               text = msg.content;
             } else if (Array.isArray(msg.content)) {
-              const imgPart = msg.content.find(p => p.type === "image_url");
-              const txtPart = msg.content.find(p => p.type === "text");
+              const imgPart = msg.content.find((p) => p.type === "image_url");
+              const txtPart = msg.content.find((p) => p.type === "text");
               if (imgPart) imgUrl = imgPart.image_url.url;
               if (txtPart) text = txtPart.text;
             }
             appendChatBubble("user", text, imgUrl);
-          } else if (msg.role === "assistant" && typeof msg.content === "string") {
+          } else if (
+            msg.role === "assistant" &&
+            typeof msg.content === "string"
+          ) {
             appendChatBubble("assistant", msg.content);
           }
         });
@@ -17628,18 +18450,24 @@
       // 估算 token 数（粗略：中文 1 字≈1 token，英文 4 字符≈1 token）
       function estimateTokens(messages) {
         return messages.reduce((sum, m) => {
-          const text = typeof m.content === "string" ? m.content : JSON.stringify(m.content);
+          const text =
+            typeof m.content === "string"
+              ? m.content
+              : JSON.stringify(m.content);
           return sum + Math.ceil(text.length / 2);
         }, 0);
       }
 
       function updateCtxBar() {
         const n = aiChatHistory.length;
-        const tokens = estimateTokens(aiChatHistory) + Math.ceil((aiChatSummary.length) / 2);
+        const tokens =
+          estimateTokens(aiChatHistory) + Math.ceil(aiChatSummary.length / 2);
         const counter = $("aiCtxCounter");
         const compressBtn = $("aiCtxCompressBtn");
         counter.textContent = `${n} 条消息 · ~${tokens} tokens`;
-        counter.className = "ai-ctx-counter" + (tokens > 6000 ? " danger" : tokens > 3000 ? " warn" : "");
+        counter.className =
+          "ai-ctx-counter" +
+          (tokens > 6000 ? " danger" : tokens > 3000 ? " warn" : "");
         compressBtn.style.display = n >= 4 ? "" : "none";
       }
 
@@ -17652,23 +18480,38 @@
           const toCompress = aiChatHistory.slice(0, -2); // 保留最近 2 轮原文
           const kept = aiChatHistory.slice(-2);
           const summaryPrompt = [
-            { role: "system", content: "你是一个对话摘要助手，请将以下对话内容压缩为一段简洁的摘要，保留所有关键信息、结论和重要细节，以中文输出，不超过 400 字。" },
-            { role: "user", content: toCompress.map(m => `[${m.role}]: ${typeof m.content === "string" ? m.content : JSON.stringify(m.content)}`).join("\n\n") }
+            {
+              role: "system",
+              content:
+                "你是一个对话摘要助手，请将以下对话内容压缩为一段简洁的摘要，保留所有关键信息、结论和重要细节，以中文输出，不超过 400 字。",
+            },
+            {
+              role: "user",
+              content: toCompress
+                .map(
+                  (m) =>
+                    `[${m.role}]: ${typeof m.content === "string" ? m.content : JSON.stringify(m.content)}`,
+                )
+                .join("\n\n"),
+            },
           ];
           const summary = await callAi(summaryPrompt);
-          const prev = aiChatSummary ? aiChatSummary + "\n\n" + summary : summary;
+          const prev = aiChatSummary
+            ? aiChatSummary + "\n\n" + summary
+            : summary;
           aiChatSummary = prev;
           aiChatHistory = kept;
           // 在聊天框插入系统提示气泡
           const box = $("aiChatBox");
           const notice = document.createElement("div");
-          notice.style.cssText = "text-align:center;font-size:12px;color:var(--muted);margin:6px 0;padding:4px 12px;background:rgba(16,185,129,.08);border-radius:20px;border:1px solid rgba(16,185,129,.2)";
+          notice.style.cssText =
+            "text-align:center;font-size:12px;color:var(--muted);margin:6px 0;padding:4px 12px;background:rgba(16,185,129,.08);border-radius:20px;border:1px solid rgba(16,185,129,.2)";
           notice.textContent = "✦ 历史对话已压缩为摘要，最近 2 轮保留原文";
           box.appendChild(notice);
           box.scrollTop = box.scrollHeight;
           saveCurrentSession();
           updateCtxBar();
-        } catch(e) {
+        } catch (e) {
           alert("压缩失败：" + e.message);
         } finally {
           compressBtn.disabled = false;
@@ -17679,7 +18522,11 @@
       function buildMessages(systemText) {
         const messages = [];
         if (systemText) messages.push({ role: "system", content: systemText });
-        if (aiChatSummary) messages.push({ role: "system", content: "【历史对话摘要】\n" + aiChatSummary });
+        if (aiChatSummary)
+          messages.push({
+            role: "system",
+            content: "【历史对话摘要】\n" + aiChatSummary,
+          });
         messages.push(...aiChatHistory);
         return messages;
       }
@@ -17687,28 +18534,41 @@
       function openAiCtxModal() {
         const prompts = loadAiChatPrompts();
         const selId = $("aiChatPromptSelect").value;
-        const prompt = prompts.find(p => p.id === selId);
+        const prompt = prompts.find((p) => p.id === selId);
         const systemText = prompt ? prompt.text : "";
         const messages = buildMessages(systemText);
         const body = $("aiCtxModalBody");
         body.innerHTML = "";
         if (!messages.length) {
-          body.innerHTML = "<div style='color:var(--muted);font-size:13px;text-align:center;padding:20px'>上下文为空</div>";
+          body.innerHTML =
+            "<div style='color:var(--muted);font-size:13px;text-align:center;padding:20px'>上下文为空</div>";
         } else {
-          messages.forEach(m => {
-            const isSummary = m.role === "system" && m.content.startsWith("【历史对话摘要】");
+          messages.forEach((m) => {
+            const isSummary =
+              m.role === "system" && m.content.startsWith("【历史对话摘要】");
             const el = document.createElement("div");
             el.className = "ai-ctx-msg " + (isSummary ? "summary" : m.role);
-            const roleLabel = { system: "系统提示词", user: "用户", assistant: "AI", summary: "历史摘要" };
-            const displayRole = isSummary ? "历史摘要" : (roleLabel[m.role] || m.role);
-            const text = typeof m.content === "string" ? m.content : JSON.stringify(m.content, null, 2);
+            const roleLabel = {
+              system: "系统提示词",
+              user: "用户",
+              assistant: "AI",
+              summary: "历史摘要",
+            };
+            const displayRole = isSummary
+              ? "历史摘要"
+              : roleLabel[m.role] || m.role;
+            const text =
+              typeof m.content === "string"
+                ? m.content
+                : JSON.stringify(m.content, null, 2);
             el.innerHTML = `<div class="ai-ctx-msg-role">${displayRole}</div>${isSummary ? '<span class="ai-ctx-summary-badge">已压缩</span><br>' : ""}${text.replace(/</g, "&lt;")}`;
             body.appendChild(el);
           });
         }
         const total = estimateTokens(messages);
         const info = document.createElement("div");
-        info.style.cssText = "font-size:12px;color:var(--muted);text-align:right;padding-top:4px";
+        info.style.cssText =
+          "font-size:12px;color:var(--muted);text-align:right;padding-top:4px";
         info.textContent = `共 ${messages.length} 条 · 约 ${total} tokens`;
         body.appendChild(info);
         $("aiCtxModalOverlay").style.display = "flex";
@@ -17720,7 +18580,10 @@
 
       function renderMarkdown(text) {
         if (typeof marked === "undefined") return text.replace(/</g, "&lt;");
-        return marked.parse(text).replace(/(<p>(\s|<br\s*\/?>)*<\/p>\s*)+/g, "").trim();
+        return marked
+          .parse(text)
+          .replace(/(<p>(\s|<br\s*\/?>)*<\/p>\s*)+/g, "")
+          .trim();
       }
 
       function loadAiChatPrompts() {
@@ -17739,8 +18602,10 @@
         const prompts = loadAiChatPrompts();
         const sel = $("aiChatPromptSelect");
         const cur = sel.value;
-        sel.innerHTML = prompts.map(p => `<option value="${p.id}">${p.name}</option>`).join("");
-        if (prompts.find(p => p.id === cur)) sel.value = cur;
+        sel.innerHTML = prompts
+          .map((p) => `<option value="${p.id}">${p.name}</option>`)
+          .join("");
+        if (prompts.find((p) => p.id === cur)) sel.value = cur;
       }
 
       function appendChatBubble(role, text, imgDataUrl) {
@@ -17750,7 +18615,8 @@
 
         const avatar = document.createElement("div");
         avatar.className = "ai-chat-avatar";
-        avatar.textContent = role === "user" ? "🙋" : role === "error" ? "⚠️" : "🤖";
+        avatar.textContent =
+          role === "user" ? "🙋" : role === "error" ? "⚠️" : "🤖";
 
         const content = document.createElement("div");
         content.className = "ai-chat-content";
@@ -17795,18 +18661,38 @@
         clearAiChatFile();
 
         // show user bubble — display file name as part of text if present
-        const displayText = fileData ? (text ? `${text}\n[文件: ${fileData.name}]` : `[文件: ${fileData.name}]`) : text;
+        const displayText = fileData
+          ? text
+            ? `${text}\n[文件: ${fileData.name}]`
+            : `[文件: ${fileData.name}]`
+          : text;
         appendChatBubble("user", displayText, imgDataUrl);
 
         // build message content
         const userContent = [];
-        if (imgDataUrl) userContent.push({ type: "image_url", image_url: { url: imgDataUrl } });
+        if (imgDataUrl)
+          userContent.push({
+            type: "image_url",
+            image_url: { url: imgDataUrl },
+          });
         let combinedText = text;
-        if (fileData) combinedText = (text ? text + "\n\n" : "") + `以下是文件「${fileData.name}」的内容：\n\`\`\`\n${fileData.text}\n\`\`\``;
-        if (combinedText) userContent.push({ type: "text", text: combinedText });
-        const userMsg = { role: "user", content: userContent.length === 1 && userContent[0].type === "text" ? combinedText : userContent };
+        if (fileData)
+          combinedText =
+            (text ? text + "\n\n" : "") +
+            `以下是文件「${fileData.name}」的内容：\n\`\`\`\n${fileData.text}\n\`\`\``;
+        if (combinedText)
+          userContent.push({ type: "text", text: combinedText });
+        const userMsg = {
+          role: "user",
+          content:
+            userContent.length === 1 && userContent[0].type === "text"
+              ? combinedText
+              : userContent,
+        };
         aiChatHistory.push(userMsg);
-        updateSessionTitle(typeof userMsg.content === "string" ? userMsg.content : text);
+        updateSessionTitle(
+          typeof userMsg.content === "string" ? userMsg.content : text,
+        );
         updateCtxBar();
 
         // typing indicator
@@ -17815,7 +18701,7 @@
         try {
           const prompts = loadAiChatPrompts();
           const selId = $("aiChatPromptSelect").value;
-          const prompt = prompts.find(p => p.id === selId);
+          const prompt = prompts.find((p) => p.id === selId);
           const systemText = prompt ? prompt.text : "";
 
           const messages = buildMessages(systemText);
@@ -17831,8 +18717,11 @@
           renderSessionList();
           updateCtxBar();
         } catch (err) {
-          thinkingEl.closest(".ai-chat-bubble").className = "ai-chat-bubble error";
-          thinkingEl.querySelector("span") ? thinkingEl.querySelector("span").textContent = err.message : (thinkingEl.textContent = err.message);
+          thinkingEl.closest(".ai-chat-bubble").className =
+            "ai-chat-bubble error";
+          thinkingEl.querySelector("span")
+            ? (thinkingEl.querySelector("span").textContent = err.message)
+            : (thinkingEl.textContent = err.message);
           aiChatHistory.pop();
           updateCtxBar();
         } finally {
@@ -17887,7 +18776,7 @@
           aiChatHistory = [];
           aiChatSummary = "";
           $("aiChatBox").innerHTML = "";
-          const s = aiSessions.find(s => s.id === aiCurrentSessionId);
+          const s = aiSessions.find((s) => s.id === aiCurrentSessionId);
           if (s) s.title = "新对话";
           saveCurrentSession();
           renderSessionList();
@@ -17903,7 +18792,9 @@
           e.stopPropagation();
           $("aiChatUploadMenu").classList.toggle("open");
         });
-        document.addEventListener("click", () => $("aiChatUploadMenu").classList.remove("open"));
+        document.addEventListener("click", () =>
+          $("aiChatUploadMenu").classList.remove("open"),
+        );
         $("aiChatPickImgBtn").addEventListener("click", () => {
           $("aiChatUploadMenu").classList.remove("open");
           $("aiChatImgInput").click();
@@ -17921,7 +18812,11 @@
         }
         chatInput.addEventListener("input", autoGrow);
         chatInput.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" && e.ctrlKey) { e.preventDefault(); sendAiChat(); setTimeout(autoGrow, 0); }
+          if (e.key === "Enter" && e.ctrlKey) {
+            e.preventDefault();
+            sendAiChat();
+            setTimeout(autoGrow, 0);
+          }
         });
         $("aiChatImgInput").addEventListener("change", (e) => {
           const file = e.target.files[0];
@@ -17963,9 +18858,12 @@
         $("aiChatDelPromptBtn").addEventListener("click", () => {
           const sel = $("aiChatPromptSelect");
           const id = sel.value;
-          if (id === "civil" || id === "none") { alert("内置提示词不可删除。"); return; }
+          if (id === "civil" || id === "kaoyan" || id === "none") {
+            alert("内置提示词不可删除。");
+            return;
+          }
           if (!confirm("确定删除该提示词吗？")) return;
-          const prompts = loadAiChatPrompts().filter(p => p.id !== id);
+          const prompts = loadAiChatPrompts().filter((p) => p.id !== id);
           saveAiChatPrompts(prompts);
           renderAiChatPromptSelect();
         });
@@ -17995,6 +18893,7 @@
           renderTimer();
         });
         $("addPlanBtn").addEventListener("click", () => openPlanModal());
+        $("addLongTermPlanBtn").addEventListener("click", () => openLongTermPlanModal());
         $("calendarPrevBtn").addEventListener("click", () => {
           app.planCalendarMonth = shiftMonth(app.planCalendarMonth, -1);
           renderPlans();
@@ -18366,6 +19265,45 @@
             app.selectedPlanDate = calendarDate.dataset.calendarDate;
             renderPlans();
           }
+          const ltpExpand = event.target.closest("[data-ltp-expand]");
+          const ltpEdit = event.target.closest("[data-ltp-edit]");
+          const ltpDelete = event.target.closest("[data-ltp-delete]");
+          const addSp = event.target.closest("[data-add-sp]");
+          const spEdit = event.target.closest("[data-sp-edit]");
+          const spDelete = event.target.closest("[data-sp-delete]");
+          const ltpCompletedToggle = event.target.closest("[data-ltp-completed-toggle]");
+          if (ltpExpand) {
+            const id = ltpExpand.dataset.ltpExpand;
+            if (app._expandedLtpIds.has(id)) app._expandedLtpIds.delete(id);
+            else app._expandedLtpIds.add(id);
+            renderLongTermPlans();
+          }
+          if (ltpEdit) openLongTermPlanModal(ltpEdit.dataset.ltpEdit);
+          if (ltpDelete && confirm("确定删除该阶段计划吗？")) {
+            app.state.longTermPlans = (app.state.longTermPlans || []).filter(
+              (p) => p.id !== ltpDelete.dataset.ltpDelete,
+            );
+            saveState();
+            renderLongTermPlans();
+          }
+          if (addSp) openSubjectPlanModal(addSp.dataset.addSp);
+          if (spEdit) openSubjectPlanModal(spEdit.dataset.ltpId, spEdit.dataset.spEdit);
+          if (spDelete && confirm("确定删除该科目排期吗？")) {
+            const ltp = (app.state.longTermPlans || []).find(
+              (p) => p.id === spDelete.dataset.ltpId,
+            );
+            if (ltp) {
+              ltp.subjectPlans = (ltp.subjectPlans || []).filter(
+                (s) => s.id !== spDelete.dataset.spDelete,
+              );
+              saveState();
+              renderLongTermPlans();
+            }
+          }
+          if (ltpCompletedToggle) {
+            app._ltpCompletedExpanded = !app._ltpCompletedExpanded;
+            renderLongTermPlans();
+          }
         });
 
         document.addEventListener("change", (event) => {
@@ -18404,6 +19342,35 @@
               renderAll();
             }
           }
+          const ltpToggle = event.target.closest("[data-ltp-toggle]");
+          if (ltpToggle) {
+            const ltp = (app.state.longTermPlans || []).find(
+              (p) => p.id === ltpToggle.dataset.ltpToggle,
+            );
+            if (ltp) {
+              ltp.completed = ltpToggle.checked;
+              saveState();
+              renderLongTermPlans();
+            }
+            return;
+          }
+          const spToggle = event.target.closest("[data-sp-toggle]");
+          if (spToggle) {
+            const ltp = (app.state.longTermPlans || []).find(
+              (p) => p.id === spToggle.dataset.ltpId,
+            );
+            if (ltp) {
+              const sp = (ltp.subjectPlans || []).find(
+                (s) => s.id === spToggle.dataset.spToggle,
+              );
+              if (sp) {
+                sp.completed = spToggle.checked;
+                saveState();
+                renderLongTermPlans();
+              }
+            }
+            return;
+          }
         });
       }
 
@@ -18422,15 +19389,22 @@
       init();
     </script>
 
-  <!-- 上下文查看弹窗 -->
-  <div class="ai-ctx-modal-overlay" id="aiCtxModalOverlay" style="display:none" onclick="if(event.target===this)closeAiCtxModal()">
-    <div class="ai-ctx-modal">
-      <div class="ai-ctx-modal-header">
-        <h4>当前上下文窗口</h4>
-        <button class="ai-ctx-modal-close" onclick="closeAiCtxModal()">×</button>
+    <!-- 上下文查看弹窗 -->
+    <div
+      class="ai-ctx-modal-overlay"
+      id="aiCtxModalOverlay"
+      style="display: none"
+      onclick="if (event.target === this) closeAiCtxModal();"
+    >
+      <div class="ai-ctx-modal">
+        <div class="ai-ctx-modal-header">
+          <h4>当前上下文窗口</h4>
+          <button class="ai-ctx-modal-close" onclick="closeAiCtxModal()">
+            ×
+          </button>
+        </div>
+        <div class="ai-ctx-modal-body" id="aiCtxModalBody"></div>
       </div>
-      <div class="ai-ctx-modal-body" id="aiCtxModalBody"></div>
     </div>
-  </div>
   </body>
 </html>
