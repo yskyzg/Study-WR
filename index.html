@@ -19476,16 +19476,58 @@
           renderAll();
           alert("学习目标已保存。");
         });
-        $("exportDataBtn").addEventListener("click", exportData);
-        $("importDataBtn").addEventListener("click", () => {
-          if (!confirm("导入数据将覆盖当前所有本地数据，确定继续吗？")) return;
-          $("importDataInput").click();
+        $("exportDataBtn").addEventListener("click", showExportDialog);
+        $("exportModalCloseBtn").addEventListener("click", closeExportModal);
+        $("exportModalCancelBtn").addEventListener("click", closeExportModal);
+        $("exportModal").addEventListener("click", (e) => {
+          if (e.target === $("exportModal")) closeExportModal();
         });
+        ["exportMain", "exportAiChat", "exportAiReminder"].forEach((id) => {
+          $(id).addEventListener("change", updateExportConfirmBtn);
+        });
+        $("exportConfirmBtn").addEventListener("click", () => {
+          const payload = buildExportPayload(
+            $("exportMain").checked,
+            $("exportAiChat").checked,
+            $("exportAiReminder").checked,
+          );
+          downloadBackup(payload);
+          closeExportModal();
+        });
+
+        $("importDataBtn").addEventListener("click", () =>
+          $("importDataInput").click(),
+        );
         $("importDataInput").addEventListener("change", (event) => {
-          if (event.target.files.length) {
-            importData(event.target.files[0]);
-            event.target.value = "";
-          }
+          if (!event.target.files.length) return;
+          const file = event.target.files[0];
+          event.target.value = "";
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const raw = JSON.parse(e.target.result);
+              if (!raw || typeof raw !== "object")
+                throw new Error("无效的 JSON 格式");
+              showImportDialog(parseBackupFile(raw));
+            } catch (err) {
+              alert(`数据导入失败：${err.message}`);
+            }
+          };
+          reader.readAsText(file);
+        });
+        $("importModalCloseBtn").addEventListener("click", closeImportModal);
+        $("importModalCancelBtn").addEventListener("click", closeImportModal);
+        $("importModal").addEventListener("click", (e) => {
+          if (e.target === $("importModal")) closeImportModal();
+        });
+        $("importConfirmBtn").addEventListener("click", () => {
+          closeImportModal();
+          applyImport();
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key !== "Escape") return;
+          if ($("exportModal").classList.contains("active")) closeExportModal();
+          if ($("importModal").classList.contains("active")) closeImportModal();
         });
         $("loadPresetBtn").addEventListener("click", () => {
           const presets = app.state.settings.apiPresets || [];
