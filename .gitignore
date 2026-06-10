@@ -23,3 +23,8 @@ pnpm-debug.log*
 
 # Claude local/session files
 .claude/
+.superpowers/
+
+# AI-generated planning artifacts
+Plans/
+docs/superpowers/
