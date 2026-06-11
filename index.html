@@ -15390,10 +15390,13 @@
       }
 
       function normalizeMistake(mistake) {
+        const safe = mistake && typeof mistake === "object" ? mistake : {};
         return {
-          ...mistake,
-          totalQuestions: Number(mistake.totalQuestions) || 0,
-          wrongQuestions: Number(mistake.wrongQuestions) || 0,
+          ...safe,
+          totalQuestions: Number(safe.totalQuestions) || 0,
+          wrongQuestions: Number(safe.wrongQuestions) || 0,
+          images: Array.isArray(safe.images) ? safe.images : [],
+          answerImages: Array.isArray(safe.answerImages) ? safe.answerImages : [],
         };
       }
 
@@ -17125,6 +17128,65 @@
           });
         }
 
+        // Place a single image (kept whole, never sliced) onto the PDF.
+        async function placeImage(pdf, src) {
+          if (!src) return;
+          let img;
+          try {
+            img = await loadImg(src);
+          } catch {
+            return;
+          }
+          const aspect = img.naturalHeight / img.naturalWidth;
+          const imgPtW = contentW;
+          const imgPtH = imgPtW * aspect;
+          const maxImgH = pageH - margin * 2;
+          let drawW = imgPtW,
+            drawH = imgPtH;
+          if (drawH > maxImgH) {
+            drawH = maxImgH;
+            drawW = drawH / aspect;
+          }
+          if (currentY + drawH > pageH - margin) {
+            pdf.addPage();
+            currentY = margin;
+          }
+          pdf.addImage(
+            src,
+            margin + (contentW - drawW) / 2,
+            currentY,
+            drawW,
+            drawH,
+          );
+          currentY += drawH + 6;
+        }
+
+        async function placeImages(pdf, list) {
+          for (const src of list || []) {
+            await placeImage(pdf, src);
+          }
+        }
+
+        // Build a text block DOM element for html2canvas rendering.
+        function buildTextDiv(innerHTML) {
+          const div = document.createElement("div");
+          div.style.cssText = [
+            "position:fixed",
+            "left:-9999px",
+            "top:0",
+            `width:${Math.round(contentW)}px`,
+            "background:#ffffff",
+            "padding:10px 14px",
+            "font-family:'Microsoft YaHei',PingFang SC,sans-serif",
+            "color:#1e293b",
+            "font-size:13px",
+            "line-height:1.65",
+            "box-sizing:border-box",
+          ].join(";");
+          div.innerHTML = innerHTML;
+          return div;
+        }
+
         const pdf = new jsPDF({ unit: "pt", format: "a4" });
         const pageW = pdf.internal.pageSize.getWidth();
         const pageH = pdf.internal.pageSize.getHeight();
@@ -17137,68 +17199,33 @@
             const m = mistakes[i];
             const subName = escapeHtml(subjectName(m.subjectId) || "未分类");
 
-            // --- Text block (no images) ---
-            const textDiv = document.createElement("div");
-            textDiv.style.cssText = [
-              "position:fixed",
-              "left:-9999px",
-              "top:0",
-              `width:${Math.round(contentW)}px`,
-              "background:#ffffff",
-              "padding:10px 14px",
-              "font-family:'Microsoft YaHei',PingFang SC,sans-serif",
-              "color:#1e293b",
-              "font-size:13px",
-              "line-height:1.65",
-              "box-sizing:border-box",
-            ].join(";");
-            textDiv.innerHTML = `
+            // --- Part 1: 题目 / 错因 + 题目图片 ---
+            const header = `
               <div style="font-size:15px;font-weight:bold;margin-bottom:5px;word-break:break-all;">${i + 1}. ${escapeHtml(m.summary)}</div>
               <div style="font-size:11px;color:#64748b;margin-bottom:5px;">${subName}${m.questionType ? " · " + escapeHtml(m.questionType) : ""} · ${escapeHtml(m.date)}</div>
-              ${m.reason ? `<div style="margin-bottom:3px;"><span style="color:#64748b;">错因：</span>${escapeHtml(m.reason)}</div>` : ""}
-              ${m.answer ? `<div style="margin-bottom:3px;"><span style="color:#64748b;">正解：</span>${escapeHtml(m.answer)}</div>` : ""}
-              ${m.tags && m.tags.length ? `<div style="font-size:11px;color:#94a3b8;margin-top:3px;">知识点：${escapeHtml(m.tags.join("、"))}</div>` : ""}
             `;
-            await placeTextBlock(pdf, textDiv);
+            const reasonBlock = m.reason
+              ? `<div style="margin-bottom:3px;"><span style="color:#64748b;">错因：</span>${escapeHtml(m.reason)}</div>`
+              : "";
+            await placeTextBlock(pdf, buildTextDiv(header + reasonBlock));
+            await placeImages(pdf, m.images);
 
-            // --- Images: each placed whole, never sliced ---
-            for (const src of m.images || []) {
-              let img;
-              try {
-                img = await loadImg(src);
-              } catch {
-                continue;
-              }
-
-              // Scale image to fit contentW, preserving aspect ratio
-              const aspect = img.naturalHeight / img.naturalWidth;
-              const imgPtW = contentW;
-              const imgPtH = imgPtW * aspect;
-
-              // If image is taller than a full page, scale it down to fit one page
-              const maxImgH = pageH - margin * 2;
-              let drawW = imgPtW,
-                drawH = imgPtH;
-              if (drawH > maxImgH) {
-                drawH = maxImgH;
-                drawW = drawH / aspect;
-              }
-
-              // Never split an image — if it doesn't fit, start a new page
-              if (currentY + drawH > pageH - margin) {
-                pdf.addPage();
-                currentY = margin;
-              }
-
-              pdf.addImage(
-                src,
-                margin + (contentW - drawW) / 2,
-                currentY,
-                drawW,
-                drawH,
+            // --- Part 2: 正解 / 知识点 + 答案图片 ---
+            const answerParts = [];
+            if (m.answer) {
+              answerParts.push(
+                `<div style="margin-bottom:3px;"><span style="color:#64748b;">正解：</span>${escapeHtml(m.answer)}</div>`,
               );
-              currentY += drawH + 6;
             }
+            if (m.tags && m.tags.length) {
+              answerParts.push(
+                `<div style="font-size:11px;color:#94a3b8;margin-top:3px;">知识点：${escapeHtml(m.tags.join("、"))}</div>`,
+              );
+            }
+            if (answerParts.length) {
+              await placeTextBlock(pdf, buildTextDiv(answerParts.join("")));
+            }
+            await placeImages(pdf, m.answerImages);
 
             // --- Separator between mistakes ---
             if (i < mistakes.length - 1) {
@@ -17224,17 +17251,21 @@
         }
       }
 
-      function renderMistakeImgStrip(images, mistakeId) {
+      function renderMistakeImgStrip(images, mistakeId, group) {
         if (!images || !images.length) return "";
-        return `<div class="mistake-img-strip">${images
-          .map(
-            (src, idx) =>
-              `<div class="mistake-thumb" data-lightbox-src="${escapeHtml(src)}">
-                <img src="${escapeHtml(src)}" alt="图片${idx + 1}" loading="lazy" />
-                <button class="mistake-thumb-del" data-del-img-id="${escapeHtml(mistakeId)}" data-del-img-idx="${idx}" title="删除图片">×</button>
-              </div>`,
-          )
-          .join("")}</div>`;
+        const label = group === "answer" ? "答案图片" : "题目图片";
+        return `<div class="mistake-img-block">
+          <div class="mistake-img-label">${label}</div>
+          <div class="mistake-img-strip">${images
+            .map(
+              (src, idx) =>
+                `<div class="mistake-thumb" data-lightbox-src="${escapeHtml(src)}">
+                  <img src="${escapeHtml(src)}" alt="${label}${idx + 1}" loading="lazy" />
+                  <button class="mistake-thumb-del" data-del-img-id="${escapeHtml(mistakeId)}" data-del-img-idx="${idx}" data-del-img-group="${group}" title="删除图片">×</button>
+                </div>`,
+            )
+            .join("")}</div>
+        </div>`;
       }
 
       function renderMistakes() {
@@ -17260,7 +17291,8 @@
               <div class="item-title">${escapeHtml(m.summary)}</div>
               <div class="tag-row">${subjectPill(m.subjectId)}${m.questionType ? `<span class="tag">${escapeHtml(m.questionType)}</span>` : ""}<span class="tag">${escapeHtml(m.date)}</span>${(m.tags || []).length ? `<span class="tag">知识点：${escapeHtml(m.tags.join("、"))}</span>` : ""}</div>
               <div class="small muted">错因：${escapeHtml(m.reason || "未填写")} · 正解：${escapeHtml(m.answer || "未填写")} · ${accuracyText(m)}</div>
-              ${renderMistakeImgStrip(m.images, m.id)}
+              ${renderMistakeImgStrip(m.images, m.id, "question")}
+              ${renderMistakeImgStrip(m.answerImages, m.id, "answer")}
             </div>
           </div>
           ${
@@ -17288,13 +17320,16 @@
           date: todayISO(),
           totalQuestions: 0,
           wrongQuestions: 0,
+          images: [],
+          answerImages: [],
         };
         let modalImages = [...(mistake.images || [])];
+        let modalAnswerImages = [...(mistake.answerImages || [])];
 
-        function renderModalThumbs() {
-          const grid = document.getElementById("mistakeModalThumbGrid");
+        function renderModalThumbs(gridId, getArr) {
+          const grid = document.getElementById(gridId);
           if (!grid) return;
-          grid.innerHTML = modalImages
+          grid.innerHTML = getArr()
             .map(
               (src, idx) =>
                 `<div class="modal-thumb">
@@ -17306,16 +17341,22 @@
           grid.querySelectorAll("[data-modal-del-idx]").forEach((btn) => {
             btn.addEventListener("click", (e) => {
               e.stopPropagation();
-              modalImages.splice(Number(btn.dataset.modalDelIdx), 1);
-              renderModalThumbs();
+              const arr = getArr();
+              arr.splice(Number(btn.dataset.modalDelIdx), 1);
+              renderModalThumbs(gridId, getArr);
             });
           });
           grid.querySelectorAll(".modal-thumb img").forEach((img, idx) => {
             img.addEventListener("click", () =>
-              openImageLightbox(modalImages[idx]),
+              openImageLightbox(getArr()[idx]),
             );
           });
         }
+
+        const renderQuestionThumbs = () =>
+          renderModalThumbs("mistakeModalThumbGrid", () => modalImages);
+        const renderAnswerThumbs = () =>
+          renderModalThumbs("mistakeAnswerThumbGrid", () => modalAnswerImages);
 
         openModal(
           mistakeId ? "编辑错题" : "新增错题",
@@ -17331,52 +17372,71 @@
         </div>
         <div class="field"><label for="mistakeSummaryInput">题目/错误摘要</label><textarea id="mistakeSummaryInput">${escapeHtml(mistake.summary)}</textarea></div>
         <div class="field"><label for="mistakeReasonInput">错因</label><textarea id="mistakeReasonInput">${escapeHtml(mistake.reason)}</textarea></div>
-        <div class="field"><label for="mistakeAnswerInput">正确答案 / 解法</label><textarea id="mistakeAnswerInput">${escapeHtml(mistake.answer)}</textarea></div>
-        <div class="field"><label for="mistakeTagsInput">知识点（中英文逗号分隔皆可）</label><input id="mistakeTagsInput" placeholder="例如：增长率公式、逻辑推理" value="${escapeHtml((mistake.tags || []).join(", "))}" /></div>
         <div class="field">
           <label>题目图片</label>
           <div class="img-upload-area" id="mistakeImgUploadArea">点击或拖拽图片上传（支持 JPG / PNG / GIF / WebP）</div>
           <input type="file" id="mistakeImgFileInput" accept="image/*" multiple style="display:none;" />
           <div class="modal-thumb-grid" id="mistakeModalThumbGrid"></div>
         </div>
+        <div class="field"><label for="mistakeAnswerInput">正确答案 / 解法</label><textarea id="mistakeAnswerInput">${escapeHtml(mistake.answer)}</textarea></div>
+        <div class="field">
+          <label>答案图片</label>
+          <div class="img-upload-area" id="mistakeAnswerUploadArea">点击或拖拽图片上传（支持 JPG / PNG / GIF / WebP）</div>
+          <input type="file" id="mistakeAnswerFileInput" accept="image/*" multiple style="display:none;" />
+          <div class="modal-thumb-grid" id="mistakeAnswerThumbGrid"></div>
+        </div>
+        <div class="field"><label for="mistakeTagsInput">知识点（中英文逗号分隔皆可）</label><input id="mistakeTagsInput" placeholder="例如：增长率公式、逻辑推理" value="${escapeHtml((mistake.tags || []).join(", "))}" /></div>
         <div class="btn-row" style="margin-top:14px;"><button class="btn primary" id="saveMistakeModalBtn">保存</button></div>
       `,
         );
 
-        renderModalThumbs();
+        renderQuestionThumbs();
+        renderAnswerThumbs();
 
-        const imgUploadArea = $("mistakeImgUploadArea");
-        const imgFileInput = $("mistakeImgFileInput");
+        function bindUploadArea(areaEl, fileInput, arr, rerender) {
+          areaEl.addEventListener("click", () => fileInput.click());
+          areaEl.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            areaEl.style.borderColor = "var(--accent, #6366f1)";
+          });
+          areaEl.addEventListener("dragleave", () => {
+            areaEl.style.borderColor = "";
+          });
+          areaEl.addEventListener("drop", (e) => {
+            e.preventDefault();
+            areaEl.style.borderColor = "";
+            readImageFiles(e.dataTransfer.files, arr, rerender);
+          });
+          fileInput.addEventListener("change", () => {
+            readImageFiles(fileInput.files, arr, rerender);
+            fileInput.value = "";
+          });
+        }
 
-        imgUploadArea.addEventListener("click", () => imgFileInput.click());
-        imgUploadArea.addEventListener("dragover", (e) => {
-          e.preventDefault();
-          imgUploadArea.style.borderColor = "var(--accent, #6366f1)";
-        });
-        imgUploadArea.addEventListener("dragleave", () => {
-          imgUploadArea.style.borderColor = "";
-        });
-        imgUploadArea.addEventListener("drop", (e) => {
-          e.preventDefault();
-          imgUploadArea.style.borderColor = "";
-          handleImageFiles(e.dataTransfer.files);
-        });
-        imgFileInput.addEventListener("change", () => {
-          handleImageFiles(imgFileInput.files);
-          imgFileInput.value = "";
-        });
-
-        function handleImageFiles(files) {
+        function readImageFiles(files, arr, rerender) {
           Array.from(files).forEach((file) => {
             if (!file.type.startsWith("image/")) return;
             const reader = new FileReader();
             reader.onload = (ev) => {
-              modalImages.push(ev.target.result);
-              renderModalThumbs();
+              arr.push(ev.target.result);
+              rerender();
             };
             reader.readAsDataURL(file);
           });
         }
+
+        bindUploadArea(
+          $("mistakeImgUploadArea"),
+          $("mistakeImgFileInput"),
+          modalImages,
+          renderQuestionThumbs,
+        );
+        bindUploadArea(
+          $("mistakeAnswerUploadArea"),
+          $("mistakeAnswerFileInput"),
+          modalAnswerImages,
+          renderAnswerThumbs,
+        );
 
         populateSubjectSelect($("mistakeSubjectInput"), { includeEmpty: true });
         $("mistakeSubjectInput").value = mistake.subjectId;
@@ -17446,6 +17506,7 @@
               .filter(Boolean),
             date: $("mistakeDateInput").value || todayISO(),
             images: modalImages,
+            answerImages: modalAnswerImages,
           };
           if (mistakeId) Object.assign(mistake, payload);
           else app.state.mistakes.push({ id: uid("mis"), ...payload });
@@ -19596,9 +19657,12 @@
           if (delImg) {
             const mistakeId = delImg.dataset.delImgId;
             const imgIdx = Number(delImg.dataset.delImgIdx);
+            const group = delImg.dataset.delImgGroup || "question";
             const m = app.state.mistakes.find((x) => x.id === mistakeId);
-            if (m && m.images) {
-              m.images.splice(imgIdx, 1);
+            if (m) {
+              const key = group === "answer" ? "answerImages" : "images";
+              if (!Array.isArray(m[key])) m[key] = [];
+              m[key].splice(imgIdx, 1);
               saveState();
               renderMistakes();
             }
